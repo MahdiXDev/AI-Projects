@@ -1,0 +1,148 @@
+import React, { useReducer, createContext, Dispatch } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import type { Course, Topic } from './types';
+import HomePage from './pages/HomePage';
+import CoursePage from './pages/CoursePage';
+import TopicDetailPage from './pages/TopicDetailPage';
+
+// --- STATE MANAGEMENT (useReducer) ---
+
+type Action =
+  | { type: 'ADD_COURSE'; payload: { name: string; description: string } }
+  | { type: 'EDIT_COURSE'; payload: { courseId: string; name: string; description: string } }
+  | { type: 'DELETE_COURSE'; payload: { courseId: string } }
+  | { type: 'ADD_TOPIC'; payload: { courseId: string; title: string } }
+  | { type: 'EDIT_TOPIC'; payload: { courseId: string; topicId: string; title: string } }
+  | { type: 'DELETE_TOPIC'; payload: { courseId: string; topicId: string } }
+  | { type: 'UPDATE_TOPIC_DETAILS'; payload: { courseId: string; topicId: string; notes: string; imageUrl?: string } };
+
+const initialState: Course[] = [
+  {
+    id: 'course-1',
+    name: 'Introduction to React',
+    description: 'Learn the fundamentals of building modern web applications with React.',
+    topics: [
+      { id: 'topic-1-1', title: 'Components and Props', notes: 'Components are the building blocks of React applications. Props are how you pass data from parent to child.', imageUrl: 'https://picsum.photos/800/400?random=1' },
+      { id: 'topic-1-2', title: 'State and Lifecycle', notes: 'State allows components to manage their own data. Lifecycle methods let you run code at particular times in a component\'s life.', imageUrl: 'https://picsum.photos/800/400?random=2' },
+      { id: 'topic-1-3', title: 'Handling Events', notes: 'Learn how to handle user interactions like clicks and form submissions.', imageUrl: '' },
+    ],
+  },
+  {
+    id: 'course-2',
+    name: 'Advanced Tailwind CSS',
+    description: 'Master the utility-first CSS framework for rapid UI development.',
+    topics: [
+      { id: 'topic-2-1', title: 'Customizing Your Theme', notes: 'Extend Tailwind\'s default theme with your own colors, spacing, and fonts.', imageUrl: 'https://picsum.photos/800/400?random=3' },
+      { id: 'topic-2-2', title: 'Just-in-Time (JIT) Compiler', notes: 'Understand the benefits of the JIT engine for performance and developer experience.', imageUrl: '' },
+    ],
+  },
+];
+
+const courseReducer = (state: Course[], action: Action): Course[] => {
+  switch (action.type) {
+    case 'ADD_COURSE':
+      const newCourse: Course = {
+        id: `course-${Date.now()}`,
+        name: action.payload.name,
+        description: action.payload.description,
+        topics: [],
+      };
+      return [...state, newCourse];
+    
+    case 'EDIT_COURSE':
+      return state.map(course => 
+        course.id === action.payload.courseId
+          ? { ...course, name: action.payload.name, description: action.payload.description }
+          : course
+      );
+
+    case 'DELETE_COURSE':
+      return state.filter(course => course.id !== action.payload.courseId);
+
+    case 'ADD_TOPIC':
+      return state.map(course => {
+        if (course.id === action.payload.courseId) {
+          const newTopic: Topic = {
+            id: `topic-${Date.now()}`,
+            title: action.payload.title,
+            notes: '',
+            imageUrl: '',
+          };
+          return { ...course, topics: [...course.topics, newTopic] };
+        }
+        return course;
+      });
+
+    case 'EDIT_TOPIC':
+      return state.map(course => {
+        if (course.id === action.payload.courseId) {
+          const updatedTopics = course.topics.map(topic =>
+            topic.id === action.payload.topicId ? { ...topic, title: action.payload.title } : topic
+          );
+          return { ...course, topics: updatedTopics };
+        }
+        return course;
+      });
+
+    case 'DELETE_TOPIC':
+      return state.map(course => {
+        if (course.id === action.payload.courseId) {
+          const filteredTopics = course.topics.filter(topic => topic.id !== action.payload.topicId);
+          return { ...course, topics: filteredTopics };
+        }
+        return course;
+      });
+      
+    case 'UPDATE_TOPIC_DETAILS':
+      return state.map(course => {
+        if (course.id === action.payload.courseId) {
+          const updatedTopics = course.topics.map(topic => {
+            if (topic.id === action.payload.topicId) {
+              return {
+                ...topic,
+                notes: action.payload.notes,
+                imageUrl: action.payload.imageUrl !== undefined ? action.payload.imageUrl : topic.imageUrl,
+              };
+            }
+            return topic;
+          });
+          return { ...course, topics: updatedTopics };
+        }
+        return course;
+      });
+
+    default:
+      return state;
+  }
+};
+
+export const CourseContext = createContext<{
+  courses: Course[];
+  dispatch: Dispatch<Action>;
+}>({
+  courses: initialState,
+  dispatch: () => null,
+});
+
+// --- MAIN APP COMPONENT ---
+
+const App = () => {
+  const [courses, dispatch] = useReducer(courseReducer, initialState);
+
+  return (
+    <CourseContext.Provider value={{ courses, dispatch }}>
+      <div className="min-h-screen bg-gray-900 text-gray-100 selection:bg-sky-400 selection:text-sky-900">
+        <div className="absolute inset-0 -z-10 h-full w-full bg-gray-900 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+        <main className="container mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/course/:courseId" element={<CoursePage />} />
+            <Route path="/course/:courseId/topic/:topicId" element={<TopicDetailPage />} />
+          </Routes>
+        </main>
+      </div>
+    </CourseContext.Provider>
+  );
+};
+
+export default App;

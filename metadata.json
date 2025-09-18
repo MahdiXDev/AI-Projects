@@ -1,0 +1,5 @@
+{
+  "name": "Course Syllabus Manager",
+  "description": "A web application for teachers to manage courses and topics, featuring real-time updates and a modern, minimalist dark theme with glassmorphism effects.",
+  "requestFramePermissions": []
+}
