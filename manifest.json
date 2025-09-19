@@ -1,0 +1,21 @@
+{
+  "name": "مدیریت سرفصل دروس",
+  "short_name": "سرفصل دروس",
+  "description": "A web application for teachers to manage courses and topics, featuring real-time updates and a modern, minimalist dark theme with glassmorphism effects.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
