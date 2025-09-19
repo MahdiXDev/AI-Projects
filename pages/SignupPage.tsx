@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import type { User } from '../types';
+import { EyeIcon, EyeOffIcon } from '../components/icons';
 
 const SignupPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -101,7 +102,7 @@ const SignupPage: React.FC = () => {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="appearance-none rounded-none rounded-b-lg relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                className="appearance-none rounded-none rounded-b-lg relative block w-full pl-10 pr-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
                                 placeholder="رمز عبور (حداقل ۶ کاراکتر)"
                             />
                              <button
@@ -110,7 +111,7 @@ const SignupPage: React.FC = () => {
                                 className="absolute inset-y-0 left-0 flex items-center px-3 text-gray-400 hover:text-white"
                                 aria-label={showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
                             >
-                                {showPassword ? '👁️' : '👁️‍🗨️'}
+                                {showPassword ? <EyeOffIcon className="w-5 h-5"/> : <EyeIcon className="w-5 h-5" />}
                             </button>
                         </div>
                     </div>

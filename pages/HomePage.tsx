@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CourseContext } from '../App';
 import type { Course } from '../types';
 import Modal, { ConfirmModal } from '../components/Modal';
+import { PlusIcon, DotsVerticalIcon, PencilIcon, TrashIcon, SearchIcon, ChevronDownIcon } from '../components/icons';
 
 // A component for each course in the list
 const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () => void }> = ({ course, onEdit, onDelete }) => {
@@ -26,16 +27,18 @@ const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () =>
         <div className="group relative rounded-xl border border-white/10 bg-gray-800/40 p-6 transition-all duration-300 hover:bg-gray-700/50 hover:border-sky-400/30">
             <div className="absolute top-4 right-4" ref={menuRef}>
                 <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors opacity-50 group-hover:opacity-100">
-                    <span className="text-xl">⋮</span>
+                    <DotsVerticalIcon className="w-5 h-5" />
                 </button>
                 {menuOpen && (
-                    <div className="absolute left-0 mt-2 w-40 origin-top-left rounded-lg bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
+                    <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-lg bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
                         <div className="py-1">
                             <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/80">
-                                ویرایش
+                                <PencilIcon className="w-4 h-4" />
+                                <span>ویرایش</span>
                             </button>
                             <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">
-                                حذف
+                                <TrashIcon className="w-4 h-4" />
+                                <span>حذف</span>
                             </button>
                         </div>
                     </div>
@@ -156,12 +159,15 @@ const HomePage: React.FC = () => {
             
             <div className="mb-6 flex flex-col md:flex-row gap-4">
               <div className="relative flex-grow">
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <SearchIcon className="w-5 h-5 text-gray-400" />
+                  </span>
                   <input
                     type="text"
                     placeholder="جستجوی دوره..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-10 rounded-lg border-white/20 bg-gray-700/50 px-3 py-2 text-white placeholder-gray-400 focus:border-sky-500 focus:ring-sky-500 transition"
+                    className="w-full h-10 rounded-lg border-white/20 bg-gray-700/50 pr-10 pl-3 py-2 text-white placeholder-gray-400 focus:border-sky-500 focus:ring-sky-500 transition"
                   />
               </div>
               <div className="relative shrink-0" ref={sortMenuRef}>
@@ -170,7 +176,7 @@ const HomePage: React.FC = () => {
                       className="flex items-center justify-between w-full md:w-48 h-10 rounded-lg border-white/20 bg-gray-700/50 px-4 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
                   >
                       <span>{currentSortLabel}</span>
-                      <span className={`text-gray-400 transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180' : ''}`}>▾</span>
+                      <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
                       {isSortMenuOpen && (
@@ -201,9 +207,10 @@ const HomePage: React.FC = () => {
               </div>
               <button
                   onClick={openAddModal}
-                  className="flex items-center justify-center h-10 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 shrink-0 w-full md:w-auto"
+                  className="flex items-center justify-center gap-2 h-10 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 shrink-0 w-full md:w-auto"
               >
-                  دوره جدید
+                  <PlusIcon className="w-5 h-5" />
+                  <span>دوره جدید</span>
               </button>
             </div>
 

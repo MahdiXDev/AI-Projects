@@ -8,6 +8,7 @@ import TopicDetailPage from './pages/TopicDetailPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import { ConfirmModal } from './components/Modal';
+import { UserIcon, LogoutIcon } from './components/icons';
 
 // --- STATE MANAGEMENT (useReducer) ---
 
@@ -144,9 +145,11 @@ const AuthenticatedLayout = () => {
                 <header className="sticky top-0 z-40 bg-gray-900/70 backdrop-blur-lg border-b border-white/10">
                     <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                            <UserIcon className="w-5 h-5 text-gray-400" />
                             <span className="text-sm font-medium text-gray-300">{currentUser?.username || currentUser?.email}</span>
                         </div>
-                        <button onClick={() => setIsLogoutConfirmOpen(true)} className="text-gray-400 hover:text-white transition-colors">
+                        <button onClick={() => setIsLogoutConfirmOpen(true)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                            <LogoutIcon className="w-5 h-5" />
                             <span className="text-sm font-medium">خروج</span>
                         </button>
                     </div>

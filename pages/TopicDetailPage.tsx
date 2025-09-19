@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CourseContext } from '../App';
+import { ArrowRightIcon, SaveIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon, UploadIcon } from '../components/icons';
 
 const TopicDetailPage: React.FC = () => {
   const { courseId, topicId } = useParams<{ courseId: string; topicId: string }>();
@@ -78,8 +79,9 @@ const TopicDetailPage: React.FC = () => {
   return (
     <div>
       <header className="mb-8">
-        <button onClick={() => navigate(`/course/${courseId}`)} className="flex items-center text-sky-400 hover:text-sky-300 mb-4 transition-colors">
-          بازگشت به سرفصل‌ها
+        <button onClick={() => navigate(`/course/${courseId}`)} className="flex items-center gap-2 text-sky-400 hover:text-sky-300 mb-4 transition-colors">
+            <ArrowRightIcon className="w-4 h-4" />
+            <span>بازگشت به سرفصل‌ها</span>
         </button>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
@@ -89,9 +91,10 @@ const TopicDetailPage: React.FC = () => {
             {isDirty && (
                 <button
                 onClick={handleSaveChanges}
-                className="mt-4 md:mt-0 w-full md:w-auto shrink-0 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
+                className="mt-4 md:mt-0 w-full md:w-auto shrink-0 flex items-center gap-2 justify-center rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
                 >
-                ذخیره تغییرات
+                  <SaveIcon className="w-5 h-5" />
+                  <span>ذخیره تغییرات</span>
                 </button>
             )}
         </div>
@@ -136,7 +139,7 @@ const TopicDetailPage: React.FC = () => {
                     className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-red-500/80"
                     aria-label="Remove image"
                   >
-                    <span className="font-bold leading-none">&times;</span>
+                    <TrashIcon className="w-5 h-5" />
                   </button>
 
                   {imageUrls.length > 1 && (
@@ -144,19 +147,19 @@ const TopicDetailPage: React.FC = () => {
                       <button 
                         onClick={goToPrevious}
                         className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                        <span className="text-xl">&gt;</span>
+                        <ChevronRightIcon className="w-6 h-6" />
                       </button>
                       <button
                         onClick={goToNext}
                         className="absolute top-1/2 left-2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                        <span className="text-xl">&lt;</span>
+                        <ChevronLeftIcon className="w-6 h-6" />
                       </button>
                     </>
                   )}
                 </>
               ) : (
                 <div className="text-center p-4">
-                  <span className="text-5xl" role="img" aria-label="Cloud upload">☁️</span>
+                  <UploadIcon className="w-16 h-16 mx-auto text-gray-500" />
                   <p className="mt-2 text-sm text-gray-400">تصویری آپلود نشده است</p>
                 </div>
               )}
@@ -167,7 +170,8 @@ const TopicDetailPage: React.FC = () => {
           </div>
           
           <div className="mt-4">
-            <label htmlFor="file-upload" className="relative cursor-pointer w-full block text-center rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-300 transition-colors duration-300 hover:bg-sky-500/30">
+            <label htmlFor="file-upload" className="relative cursor-pointer w-full flex items-center justify-center gap-2 text-center rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-300 transition-colors duration-300 hover:bg-sky-500/30">
+              <UploadIcon className="w-5 h-5" />
               <span>{imageUrls.length > 0 ? 'افزودن تصاویر بیشتر' : 'بارگذاری تصویر'}</span>
               <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" multiple onChange={handleImageUpload} />
             </label>

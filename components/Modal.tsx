@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { XIcon } from './icons';
 
 interface ModalProps {
   isOpen: boolean;
@@ -33,9 +34,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
               <button
                 onClick={onClose}
                 aria-label="بستن"
-                className="text-gray-400 hover:text-white transition-colors duration-200"
+                className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors duration-200"
               >
-                <span className="text-2xl font-sans">&times;</span>
+                <XIcon className="w-6 h-6" />
               </button>
             </div>
             <div className="mt-6">
