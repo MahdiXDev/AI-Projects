@@ -4,9 +4,10 @@ import { AuthContext } from '../App';
 import type { User } from '../types';
 
 const SignupPage: React.FC = () => {
-    const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const { login } = useContext(AuthContext);
@@ -16,12 +17,13 @@ const SignupPage: React.FC = () => {
         e.preventDefault();
         setError('');
 
-        if (!email || !username || !password) {
+        if (!username || !email || !password || !confirmPassword) {
             setError('لطفاً تمام فیلدها را پر کنید.');
             return;
         }
-        if (password.length < 6) {
-            setError('رمز عبور باید حداقل ۶ کاراکتر باشد.');
+
+        if (password !== confirmPassword) {
+            setError('رمزهای عبور با هم مطابقت ندارند.');
             return;
         }
 
@@ -30,26 +32,28 @@ const SignupPage: React.FC = () => {
             const existingUser = storedUsers.find((u: any) => u.email === email);
 
             if (existingUser) {
-                setError('این ایمیل قبلاً ثبت‌نام کرده است.');
+                setError('کاربری با این ایمیل قبلاً ثبت‌نام کرده است.');
                 return;
             }
 
-            const newUser = { 
-                email, 
-                username, 
-                password,
+            const newUser = {
+                username,
+                email,
+                password, // Note: Storing plain text passwords is a bad practice. This is for demo purposes only.
                 createdAt: Date.now(),
-                profilePicture: null
+                profilePicture: null,
             };
+
             storedUsers.push(newUser);
             localStorage.setItem('users', JSON.stringify(storedUsers));
 
-            const userData: User = { 
-                email: newUser.email, 
+            const userData: User = {
+                email: newUser.email,
                 username: newUser.username,
                 createdAt: newUser.createdAt,
-                profilePicture: newUser.profilePicture
+                profilePicture: newUser.profilePicture,
             };
+            
             login(userData);
             navigate('/');
 
@@ -61,10 +65,10 @@ const SignupPage: React.FC = () => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-             <div className="absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-900 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+            <div className="absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-900 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
             <div className="w-full max-w-md p-8 space-y-8 rounded-xl border border-black/20 dark:border-white/20 bg-gray-200/50 dark:bg-gray-800/50 shadow-2xl shadow-black/40 backdrop-blur-xl">
                 <div>
-                    <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white">ایجاد حساب کاربری جدید</h2>
+                    <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white">ایجاد حساب کاربری</h2>
                     <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                         یا{' '}
                         <Link to="/login" className="font-medium text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300">
@@ -75,6 +79,19 @@ const SignupPage: React.FC = () => {
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
+                           <label htmlFor="username" className="sr-only">نام کاربری</label>
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                required
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="appearance-none rounded-t-lg relative block w-full px-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                placeholder="نام کاربری"
+                            />
+                        </div>
+                        <div>
                             <label htmlFor="email-address" className="sr-only">آدرس ایمیل</label>
                             <input
                                 id="email-address"
@@ -84,26 +101,12 @@ const SignupPage: React.FC = () => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="appearance-none rounded-none rounded-t-lg relative block w-full px-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                className="appearance-none relative block w-full px-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
                                 placeholder="آدرس ایمیل"
                             />
                         </div>
-                        <div>
-                            <label htmlFor="username" className="sr-only">نام کاربری</label>
-                            <input
-                                id="username"
-                                name="username"
-                                type="text"
-                                autoComplete="username"
-                                required
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
-                                placeholder="نام کاربری"
-                            />
-                        </div>
                         <div className="relative">
-                            <label htmlFor="password" className="sr-only">رمز عبور</label>
+                            <label htmlFor="password"className="sr-only">رمز عبور</label>
                             <input
                                 id="password"
                                 name="password"
@@ -112,8 +115,8 @@ const SignupPage: React.FC = () => {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="appearance-none rounded-none rounded-b-lg relative block w-full pl-16 pr-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
-                                placeholder="رمز عبور (حداقل ۶ کاراکتر)"
+                                className="appearance-none relative block w-full pl-16 pr-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                placeholder="رمز عبور"
                             />
                              <button
                                 type="button"
@@ -124,16 +127,30 @@ const SignupPage: React.FC = () => {
                                 {showPassword ? 'پنهان' : 'نمایش'}
                             </button>
                         </div>
+                         <div>
+                            <label htmlFor="confirm-password"className="sr-only">تکرار رمز عبور</label>
+                            <input
+                                id="confirm-password"
+                                name="confirm-password"
+                                type={showPassword ? 'text' : 'password'}
+                                autoComplete="new-password"
+                                required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="appearance-none rounded-b-lg relative block w-full px-3 py-2 border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                placeholder="تکرار رمز عبور"
+                            />
+                        </div>
                     </div>
 
-                     {error && <p className="text-red-500 dark:text-red-400 text-sm text-center">{error}</p>}
+                    {error && <p className="text-red-500 dark:text-red-400 text-sm text-center">{error}</p>}
 
                     <div>
                         <button
                             type="submit"
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-sky-500 transition-colors"
                         >
-                            ثبت‌نام
+                            ثبت نام
                         </button>
                     </div>
                 </form>
