@@ -1,5 +1,6 @@
 
 
+
 import React, { createContext, useReducer, useEffect, useState, useMemo, useContext, useRef } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,17 +11,11 @@ import TopicDetailPage from './pages/TopicDetailPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
-import AdminUsersListPage from './pages/admin/AdminUsersListPage';
-import AdminManageUserPage from './pages/admin/AdminManageUserPage';
-import AdminEditUserPage from './pages/admin/AdminEditUserPage';
-import AdminUserCoursesPage from './pages/admin/AdminUserCoursesPage'; // New admin page
 import { SunIcon, MoonIcon, LogoutIcon } from './components/icons';
 import { ConfirmModal } from './components/Modal';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // --- INITIAL DATA & LOCAL STORAGE ---
-
-const ADMIN_EMAIL = 'bagherimahdi1300@gmail.com';
 
 const getInitialState = <T,>(key: string, defaultValue: T): T => {
   try {
@@ -118,9 +113,10 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   }
 };
 
+// FIX: Add `allCourses` to CourseContextType for admin functionality.
 interface CourseContextType {
     courses: Course[]; // Courses for the logged-in user
-    allCourses: Course[]; // All courses, for admin use
+    allCourses: Course[]; // All courses for admin use
     dispatch: React.Dispatch<CourseAction>;
 }
 
@@ -149,6 +145,7 @@ const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =
     }, [allCourses, user]);
     
     return (
+        // FIX: Provide `allCourses` through the context.
         <CourseContext.Provider value={{ courses: userCourses, allCourses, dispatch }}>
             {children}
         </CourseContext.Provider>
@@ -160,9 +157,9 @@ interface StoredUser extends User {
     password?: string;
 }
 
+// FIX: Add admin functions to AuthContextType.
 interface AuthContextType {
     user: User | null;
-    isAdmin: boolean;
     isInitialized: boolean;
     login: (credentials: { email: string; password?: string }) => boolean;
     logout: () => void;
@@ -170,21 +167,16 @@ interface AuthContextType {
     updateUser: (updates: Partial<User>) => void;
     changePassword: (oldPass: string, newPass: string) => boolean;
     deleteCurrentUser: () => void;
+    // Admin functions
     getAllUsers: () => StoredUser[];
-    updateUserByEmail: (email: string, updates: Partial<StoredUser>) => boolean;
-    deleteUserByEmail: (email: string) => boolean;
+    updateUserByEmail: (email: string, updates: Partial<StoredUser>) => void;
+    deleteUserByEmail: (email: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [users, setUsers] = useState<StoredUser[]>(() => getInitialState<StoredUser[]>('users', [{
-        username: 'Admin',
-        email: ADMIN_EMAIL,
-        password: '1382_Mahdi_1382',
-        createdAt: Date.now(),
-        profilePicture: null,
-    }]));
+    const [users, setUsers] = useState<StoredUser[]>(() => getInitialState<StoredUser[]>('users', []));
     const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null));
     const [isInitialized, setIsInitialized] = useState(false);
     const navigate = useNavigate();
@@ -200,7 +192,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     
     const authContextValue = useMemo(() => ({
         user,
-        isAdmin: user?.email === ADMIN_EMAIL,
         isInitialized,
         login: ({ email, password }) => {
             const foundUser = users.find(u => u.email === email && u.password === password);
@@ -236,25 +227,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             return false;
         },
         deleteCurrentUser: () => {
-            if (!user || user.email === ADMIN_EMAIL) return;
+            if (!user) return;
             const userEmail = user.email;
             setUsers(prev => prev.filter(u => u.email !== userEmail));
             setUser(null);
             navigate('/login');
         },
+        // FIX: Implement admin functions and provide them through the context.
         getAllUsers: () => users,
-        updateUserByEmail: (email, updates) => {
-            if (!users.some(u => u.email === email)) return false;
+        updateUserByEmail: (email: string, updates: Partial<StoredUser>) => {
             setUsers(prev => prev.map(u => u.email === email ? { ...u, ...updates } : u));
-            if (user?.email === email) {
-                setUser(prev => prev ? {...prev, ...updates} : null);
-            }
-            return true;
         },
-        deleteUserByEmail: (email) => {
-            if (email === ADMIN_EMAIL) return false;
+        deleteUserByEmail: (email: string) => {
             setUsers(prev => prev.filter(u => u.email !== email));
-            return true;
         },
     }), [user, users, isInitialized, navigate]);
 
@@ -338,14 +323,6 @@ const PrivateRoute: React.FC = () => {
     return user ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
 };
 
-const AdminRoute: React.FC = () => {
-    const { user, isAdmin, isInitialized } = useContext(AuthContext);
-
-    if (!isInitialized) return null;
-
-    return user && isAdmin ? <Outlet /> : <Navigate to="/" replace />;
-};
-
 const AppRoutes: React.FC = () => (
     <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -356,12 +333,6 @@ const AppRoutes: React.FC = () => (
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/course/:courseId" element={<CoursePage />} />
                 <Route path="/course/:courseId/topic/:topicId" element={<TopicDetailPage />} />
-                <Route element={<AdminRoute />}>
-                    <Route path="/admin/users" element={<AdminUsersListPage />} />
-                    <Route path="/admin/users/:userEmail" element={<AdminManageUserPage />} />
-                    <Route path="/admin/users/:userEmail/profile" element={<AdminEditUserPage />} />
-                    <Route path="/admin/users/:userEmail/courses" element={<AdminUserCoursesPage />} />
-                </Route>
             </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" />} />

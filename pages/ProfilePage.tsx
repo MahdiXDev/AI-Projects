@@ -1,4 +1,5 @@
 
+
 import React, { useContext, useState, useRef, useMemo } from 'react';
 import { AuthContext, CourseContext } from '../App';
 import { Link } from 'react-router-dom';
@@ -18,7 +19,7 @@ const StatCard: React.FC<{ title: string; value: string | number }> = ({ title, 
 );
 
 const ProfilePage: React.FC = () => {
-    const { user, isAdmin, updateUser, changePassword, deleteCurrentUser } = useContext(AuthContext);
+    const { user, updateUser, changePassword, deleteCurrentUser } = useContext(AuthContext);
     const { courses, dispatch: dispatchCourseAction } = useContext(CourseContext);
     
     // Refs for file inputs
@@ -200,16 +201,6 @@ const ProfilePage: React.FC = () => {
                     </dl>
                 </div>
                 
-                 {isAdmin && (
-                     <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 shadow-lg backdrop-blur-lg">
-                        <h3 className="text-lg font-semibold mb-3">پنل مدیریت</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">به عنوان مدیر، شما به پنل مدیریت کاربران دسترسی دارید.</p>
-                        <Link to="/admin/users" className="inline-block rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400">
-                            ورود به پنل مدیریت
-                        </Link>
-                    </div>
-                )}
-                
                  <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 shadow-lg backdrop-blur-lg">
                     <h3 className="text-xl font-semibold mb-6">ویرایش پروفایل</h3>
                     <div className="space-y-8">
@@ -260,10 +251,9 @@ const ProfilePage: React.FC = () => {
                  <div className="rounded-xl border border-red-500/50 dark:border-red-400/50 bg-red-500/10 p-6 shadow-lg backdrop-blur-lg">
                     <h3 className="text-lg font-semibold text-red-800 dark:text-red-300">منطقه خطر</h3>
                     <p className="text-sm text-red-700 dark:text-red-400 mt-1 mb-4">این عملیات غیرقابل بازگشت است. با حذف حساب، تمام دوره‌ها و اطلاعات شما برای همیشه پاک خواهد شد.</p>
-                    <button onClick={() => setIsDeleteModalOpen(true)} disabled={isAdmin} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:bg-red-500 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed">
+                    <button onClick={() => setIsDeleteModalOpen(true)} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:bg-red-500 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed">
                         حذف حساب کاربری
                     </button>
-                    {isAdmin && <p className="text-xs text-red-600 dark:text-red-400 mt-2">حساب مدیر قابل حذف نیست.</p>}
                 </div>
             </div>
 
