@@ -1,11 +1,8 @@
-
-
-
-
-import React, { createContext, useReducer, useEffect, useState, useMemo, useContext, useRef } from 'react';
+import React, { createContext, useReducer, useEffect, useState, useMemo, useContext } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import type { User, Course, Topic } from './types';
+import { db } from './utils/db'; // Import IndexedDB utility
 import HomePage from './pages/HomePage';
 import CoursePage from './pages/CoursePage';
 import TopicDetailPage from './pages/TopicDetailPage';
@@ -14,23 +11,11 @@ import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
 import { SunIcon, MoonIcon, LogoutIcon } from './components/icons';
 import { ConfirmModal } from './components/Modal';
-import { AnimatePresence, motion } from 'framer-motion';
-
-// --- INITIAL DATA & LOCAL STORAGE ---
-
-const getInitialState = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const item = window.localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (error) {
-    console.warn(`Error reading localStorage key “${key}”:`, error);
-    return defaultValue;
-  }
-};
 
 // --- COURSE CONTEXT & REDUCER ---
 
 type CourseAction =
+  | { type: 'SET_COURSES'; payload: Course[] } // For initializing from DB
   | { type: 'ADD_COURSE'; payload: { name: string; description: string; userEmail: string } }
   | { type: 'EDIT_COURSE'; payload: { courseId: string; name: string; description: string } }
   | { type: 'DELETE_COURSE'; payload: { courseId: string } }
@@ -42,6 +27,8 @@ type CourseAction =
 
 const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   switch (action.type) {
+    case 'SET_COURSES':
+      return action.payload;
     case 'ADD_COURSE': {
       const newCourse: Course = {
         id: uuidv4(),
@@ -114,10 +101,9 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   }
 };
 
-// FIX: Add `allCourses` to CourseContextType for admin functionality.
 interface CourseContextType {
-    courses: Course[]; // Courses for the logged-in user
-    allCourses: Course[]; // All courses for admin use
+    courses: Course[];
+    allCourses: Course[];
     dispatch: React.Dispatch<CourseAction>;
 }
 
@@ -128,32 +114,36 @@ export const CourseContext = createContext<CourseContextType>({
 });
 
 const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user } = useContext(AuthContext);
-    const [allCourses, dispatch] = useReducer(courseReducer, [], () => {
-        // Initialize state from a single global key
-        return getInitialState<Course[]>('global_courses', []);
-    });
+    const { user, isInitialized: authInitialized } = useContext(AuthContext);
+    const [allCourses, dispatch] = useReducer(courseReducer, []);
+    const [coursesLoaded, setCoursesLoaded] = useState(false);
 
-    // Persist all courses to the single global key
     useEffect(() => {
-        try {
-            window.localStorage.setItem('global_courses', JSON.stringify(allCourses));
-        } catch (error) {
-            console.error("Failed to save courses to localStorage:", error);
-            alert("خطا در ذخیره‌سازی اطلاعات. ممکن است به دلیل حجم بالای تصاویر، حافظه مرورگر پر شده باشد. لطفاً تصاویر کوچک‌تری را امتحان کنید یا برخی از تصاویر قدیمی را حذف کنید.");
-        }
-    }, [allCourses]);
+        db.getAllCourses().then(courses => {
+            dispatch({ type: 'SET_COURSES', payload: courses });
+        }).catch(err => {
+            console.error("Failed to load courses from DB:", err);
+        }).finally(() => {
+             setCoursesLoaded(true);
+        });
+    }, []);
 
-    // Filter courses for the currently logged-in user
+    useEffect(() => {
+        if (!coursesLoaded) return;
+        db.saveAllCourses(allCourses).catch(error => {
+            console.error("Failed to save courses to DB:", error);
+            alert("خطا در ذخیره‌سازی اطلاعات دوره‌ها در پایگاه داده داخلی.");
+        });
+    }, [allCourses, coursesLoaded]);
+
     const userCourses = useMemo(() => {
         if (!user) return [];
         return allCourses.filter(course => course.userEmail === user.email);
     }, [allCourses, user]);
     
     return (
-        // FIX: Provide `allCourses` through the context.
         <CourseContext.Provider value={{ courses: userCourses, allCourses, dispatch }}>
-            {children}
+            {authInitialized && coursesLoaded ? children : null}
         </CourseContext.Provider>
     );
 };
@@ -163,7 +153,6 @@ interface StoredUser extends User {
     password?: string;
 }
 
-// FIX: Add admin functions to AuthContextType.
 interface AuthContextType {
     user: User | null;
     isInitialized: boolean;
@@ -173,7 +162,6 @@ interface AuthContextType {
     updateUser: (updates: Partial<User>) => void;
     changePassword: (oldPass: string, newPass: string) => boolean;
     deleteCurrentUser: () => void;
-    // Admin functions
     getAllUsers: () => StoredUser[];
     updateUserByEmail: (email: string, updates: Partial<StoredUser>) => void;
     deleteUserByEmail: (email: string) => void;
@@ -182,28 +170,43 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [users, setUsers] = useState<StoredUser[]>(() => getInitialState<StoredUser[]>('users', []));
-    const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null));
+    const [users, setUsers] = useState<StoredUser[]>([]);
+    const [user, setUser] = useState<User | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        try {
-            window.localStorage.setItem('users', JSON.stringify(users));
-        } catch (error) {
-            console.error("Failed to save users to localStorage:", error);
-            alert("خطا در ذخیره‌سازی اطلاعات کاربران. ممکن است حافظه مرورگر پر شده باشد.");
-        }
-    }, [users]);
+        const loadInitialData = async () => {
+            try {
+                const [storedUsers, storedCurrentUser] = await Promise.all([
+                    db.getAllUsers(),
+                    db.getSetting<User | null>('currentUser')
+                ]);
+                setUsers(storedUsers || []);
+                setUser(storedCurrentUser || null);
+            } catch (error) {
+                console.error("Failed to load auth data from DB", error);
+            } finally {
+                setIsInitialized(true);
+            }
+        };
+        loadInitialData();
+    }, []);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        db.saveAllUsers(users).catch(error => {
+            console.error("Failed to save users to DB:", error);
+            alert("خطا در ذخیره‌سازی اطلاعات کاربران در پایگاه داده داخلی.");
+        });
+    }, [users, isInitialized]);
     
     useEffect(() => {
-        try {
-            window.localStorage.setItem('currentUser', JSON.stringify(user));
-        } catch (error) {
-            console.error("Failed to save current user to localStorage:", error);
-            alert("خطا در ذخیره‌سازی اطلاعات کاربر فعلی. ممکن است حافظه مرورگر پر شده باشد.");
-        }
-        if (!isInitialized) setIsInitialized(true);
+        if (!isInitialized) return;
+        db.setSetting('currentUser', user).catch(error => {
+            console.error("Failed to save current user to DB:", error);
+             alert("خطا در ذخیره‌سازی اطلاعات کاربر فعلی در پایگاه داده داخلی.");
+        });
     }, [user, isInitialized]);
     
     const authContextValue = useMemo(() => ({
@@ -212,7 +215,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         login: ({ email, password }) => {
             const foundUser = users.find(u => u.email === email && u.password === password);
             if (foundUser) {
-                const { password, ...userToStore } = foundUser;
+                const { password: _, ...userToStore } = foundUser;
                 setUser(userToStore);
                 return true;
             }
@@ -249,7 +252,6 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             setUser(null);
             navigate('/login');
         },
-        // FIX: Implement admin functions and provide them through the context.
         getAllUsers: () => users,
         updateUserByEmail: (email: string, updates: Partial<StoredUser>) => {
             setUsers(prev => prev.map(u => u.email === email ? { ...u, ...updates } : u));
@@ -264,13 +266,21 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 // --- THEME ---
 const useTheme = () => {
-    const [theme, setTheme] = useState(() => getInitialState<'light' | 'dark'>('theme', 'dark'));
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+    useEffect(() => {
+        db.getSetting<'light' | 'dark'>('theme').then(storedTheme => {
+            if (storedTheme) {
+                setTheme(storedTheme);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         const root = window.document.documentElement;
         root.classList.remove(theme === 'light' ? 'dark' : 'light');
         root.classList.add(theme);
-        localStorage.setItem('theme', theme);
+        db.setSetting('theme', theme);
     }, [theme]);
 
     const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
@@ -293,13 +303,11 @@ const Layout: React.FC = () => {
             <header className="sticky top-0 z-40 bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg border-b border-black/10 dark:border-white/10">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        {/* Right Side: User Profile */}
                          <Link to="/profile" className="flex items-center gap-3 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
                             <img src={user.profilePicture || `https://api.dicebear.com/8.x/initials/svg?seed=${user.username}`} alt={user.username} className="w-9 h-9 rounded-full object-cover" />
                             <span className="font-semibold">{user.username}</span>
                         </Link>
 
-                        {/* Left Side: Controls */}
                         <div className="flex items-center gap-2">
                             <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10">
                                 {theme === 'light' ? <MoonIcon className="w-6 h-6" /> : <SunIcon className="w-6 h-6" />}
@@ -334,7 +342,13 @@ const PrivateRoute: React.FC = () => {
     const { user, isInitialized } = useContext(AuthContext);
     const location = useLocation();
 
-    if (!isInitialized) return null;
+    if (!isInitialized) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+                <div className="text-xl font-semibold">در حال بارگذاری اطلاعات...</div>
+            </div>
+        );
+    }
 
     return user ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
 };
@@ -343,8 +357,8 @@ const AppRoutes: React.FC = () => (
     <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route element={<Layout />}>
-            <Route element={<PrivateRoute />}>
+        <Route element={<PrivateRoute />}>
+            <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/course/:courseId" element={<CoursePage />} />

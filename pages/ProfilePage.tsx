@@ -1,10 +1,9 @@
-
-
 import React, { useContext, useState, useRef, useMemo } from 'react';
 import { AuthContext, CourseContext } from '../App';
 import { Link } from 'react-router-dom';
 import { ConfirmModal } from '../components/Modal';
 import { ArrowRightIcon, PencilIcon, UploadIcon, DownloadIcon } from '../components/icons';
+import { db } from '../utils/db'; // Import IndexedDB utility
 
 interface AppData {
     users: any[];
@@ -22,17 +21,14 @@ const ProfilePage: React.FC = () => {
     const { user, updateUser, changePassword, deleteCurrentUser } = useContext(AuthContext);
     const { courses, dispatch: dispatchCourseAction } = useContext(CourseContext);
     
-    // Refs for file inputs
     const profilePicInputRef = useRef<HTMLInputElement>(null);
     const importFileInputRef = useRef<HTMLInputElement>(null);
     
-    // Status and Modal states
     const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [importData, setImportData] = useState<AppData | null>(null);
 
-    // Form states
     const [newUsername, setNewUsername] = useState(user?.username || '');
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -100,18 +96,18 @@ const ProfilePage: React.FC = () => {
         setIsDeleteModalOpen(false);
     };
     
-    const handleExport = () => {
+    const handleExport = async () => {
         try {
-            const users = localStorage.getItem('users');
-            const courses = localStorage.getItem('global_courses');
+            const users = await db.getAllUsers();
+            const courses = await db.getAllCourses();
             
-            if (!users || !courses) {
+            if (users.length === 0 && courses.length === 0) {
                 showMessage('error', 'داده‌ای برای خروجی گرفتن وجود ندارد.');
                 return;
             }
             const dataToExport = {
-                users: JSON.parse(users),
-                global_courses: JSON.parse(courses),
+                users: users,
+                global_courses: courses,
             };
             const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(dataToExport, null, 2))}`;
             const link = document.createElement('a');
@@ -149,11 +145,11 @@ const ProfilePage: React.FC = () => {
         e.target.value = ''; 
     };
 
-    const confirmImport = () => {
+    const confirmImport = async () => {
         if (!importData) return;
         try {
-            localStorage.setItem('users', JSON.stringify(importData.users));
-            localStorage.setItem('global_courses', JSON.stringify(importData.global_courses));
+            await db.saveAllUsers(importData.users);
+            await db.saveAllCourses(importData.global_courses);
             setIsImportModalOpen(false);
             setImportData(null);
             alert('داده‌ها با موفقیت وارد شد. برنامه برای اعمال تغییرات مجدداً بارگذاری می‌شود.');
