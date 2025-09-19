@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CourseContext } from '../App';
 import type { Course } from '../types';
 import Modal, { ConfirmModal } from '../components/Modal';
-import { PlusIcon, DotsVerticalIcon, PencilIcon, TrashIcon, SearchIcon, ChevronDownIcon } from '../components/icons';
 
 // A component for each course in the list
 const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () => void }> = ({ course, onEdit, onDelete }) => {
@@ -24,30 +23,28 @@ const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () =>
     const topicCount = course.topics.length;
 
     return (
-        <div className="group relative rounded-xl border border-white/10 bg-gray-800/40 p-6 transition-all duration-300 hover:bg-gray-700/50 hover:border-sky-400/30">
+        <div className="group relative rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-800/40 p-6 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-sm hover:shadow-lg">
             <div className="absolute top-4 right-4" ref={menuRef}>
-                <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors opacity-50 group-hover:opacity-100">
-                    <DotsVerticalIcon className="w-5 h-5" />
+                <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors opacity-50 group-hover:opacity-100">
+                    <span className="font-bold">...</span>
                 </button>
                 {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-lg bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
+                    <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-black/10 dark:border-white/10">
                         <div className="py-1">
-                            <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/80">
-                                <PencilIcon className="w-4 h-4" />
+                            <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/80">
                                 <span>ویرایش</span>
                             </button>
-                            <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">
-                                <TrashIcon className="w-4 h-4" />
+                            <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/20">
                                 <span>حذف</span>
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-            <Link to={`/course/${course.id}`} className="flex flex-col h-full">
-                <h3 className="text-xl font-bold text-white group-hover:text-sky-300 transition-colors pr-8">{course.name}</h3>
-                <p className="mt-2 text-gray-400 text-sm flex-grow line-clamp-2">{course.description}</p>
-                <div className="mt-4 pt-4 border-t border-white/10 text-xs text-gray-500">
+            <Link to={`course/${course.id}`} className="flex flex-col h-full">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors pr-8">{course.name}</h3>
+                <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm flex-grow line-clamp-2">{course.description}</p>
+                <div className="mt-4 pt-4 border-t border-black/10 dark:border-white/10 text-xs text-gray-500">
                     <span>{topicCount} {topicCount === 1 ? 'سرفصل' : 'سرفصل‌ها'}</span>
                 </div>
             </Link>
@@ -147,36 +144,35 @@ const HomePage: React.FC = () => {
         setDeletingCourseId(null);
     };
 
-
     return (
         <>
             <header className="mb-8">
                 <div>
-                    <h1 className="text-4xl font-bold tracking-tight text-white">دوره‌های من</h1>
-                    <p className="mt-1 text-gray-400">دوره‌های آموزشی خود را مدیریت کنید.</p>
+                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">دوره‌های من</h1>
+                    <p className="mt-1 text-gray-500 dark:text-gray-400">دوره‌های آموزشی خود را مدیریت کنید.</p>
                 </div>
             </header>
             
             <div className="mb-6 flex flex-col md:flex-row gap-4">
               <div className="relative flex-grow">
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <SearchIcon className="w-5 h-5 text-gray-400" />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                    🔍
                   </span>
                   <input
                     type="text"
                     placeholder="جستجوی دوره..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-10 rounded-lg border-white/20 bg-gray-700/50 pr-10 pl-3 py-2 text-white placeholder-gray-400 focus:border-sky-500 focus:ring-sky-500 transition"
+                    className="w-full h-10 rounded-lg border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-700/50 pr-10 pl-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-sky-500 focus:ring-sky-500 transition"
                   />
               </div>
               <div className="relative shrink-0" ref={sortMenuRef}>
                   <button
                       onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                      className="flex items-center justify-between w-full md:w-48 h-10 rounded-lg border-white/20 bg-gray-700/50 px-4 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
+                      className="flex items-center justify-between w-full md:w-48 h-10 rounded-lg border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-700/50 px-4 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition"
                   >
                       <span>{currentSortLabel}</span>
-                      <ChevronDownIcon className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180' : ''}`} />
+                      <span className={`transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180' : ''}`}>▼</span>
                   </button>
                   <AnimatePresence>
                       {isSortMenuOpen && (
@@ -185,7 +181,7 @@ const HomePage: React.FC = () => {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute right-0 mt-2 w-48 origin-top-right rounded-lg bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10"
+                              className="absolute right-0 mt-2 w-48 origin-top-right rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-black/10 dark:border-white/10"
                           >
                               <div className="py-1">
                                   {sortOptions.map((option) => (
@@ -195,7 +191,7 @@ const HomePage: React.FC = () => {
                                               setSortOption(option.value);
                                               setIsSortMenuOpen(false);
                                           }}
-                                          className={`w-full text-right block px-4 py-2 text-sm ${sortOption === option.value ? 'bg-sky-500/30 text-sky-300' : 'text-gray-300'} hover:bg-gray-700/80`}
+                                          className={`w-full text-right block px-4 py-2 text-sm ${sortOption === option.value ? 'bg-sky-500/20 text-sky-600 dark:bg-sky-500/30 dark:text-sky-300' : 'text-gray-700 dark:text-gray-300'} hover:bg-gray-100 dark:hover:bg-gray-700/80`}
                                       >
                                           {option.label}
                                       </button>
@@ -209,7 +205,7 @@ const HomePage: React.FC = () => {
                   onClick={openAddModal}
                   className="flex items-center justify-center gap-2 h-10 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 shrink-0 w-full md:w-auto"
               >
-                  <PlusIcon className="w-5 h-5" />
+                  <span>+</span>
                   <span>دوره جدید</span>
               </button>
             </div>
@@ -226,8 +222,8 @@ const HomePage: React.FC = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 rounded-xl border-2 border-dashed border-gray-700">
-                    <h3 className="text-xl font-medium text-gray-400">{searchQuery ? 'نتیجه‌ای یافت نشد' : 'هنوز دوره‌ای ایجاد نکرده‌اید.'}</h3>
+                <div className="text-center py-20 rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-700">
+                    <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400">{searchQuery ? 'نتیجه‌ای یافت نشد' : 'هنوز دوره‌ای ایجاد نکرده‌اید.'}</h3>
                     <p className="text-gray-500 mt-1">{searchQuery ? `هیچ دوره‌ای با عبارت "${searchQuery}" مطابقت ندارد.` : 'برای شروع، اولین دوره خود را بسازید!'}</p>
                 </div>
             )}
@@ -236,26 +232,26 @@ const HomePage: React.FC = () => {
                 <form onSubmit={(e) => { e.preventDefault(); handleSaveCourse(); }}>
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="course-name" className="block text-sm font-medium text-gray-300 mb-1">نام دوره</label>
+                            <label htmlFor="course-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نام دوره</label>
                             <input
                                 id="course-name"
                                 type="text"
                                 value={courseName}
                                 onChange={(e) => setCourseName(e.target.value)}
                                 placeholder="مثال: آموزش React پیشرفته"
-                                className="w-full rounded-lg border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
+                                className="w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label htmlFor="course-description" className="block text-sm font-medium text-gray-300 mb-1">توضیحات</label>
+                            <label htmlFor="course-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">توضیحات</label>
                             <textarea
                                 id="course-description"
                                 value={courseDescription}
                                 onChange={(e) => setCourseDescription(e.target.value)}
                                 placeholder="در این دوره چه چیزهایی آموزش داده می‌شود؟"
                                 rows={3}
-                                className="w-full rounded-lg border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition resize-none"
+                                className="w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition resize-none"
                             />
                         </div>
                     </div>
@@ -276,6 +272,7 @@ const HomePage: React.FC = () => {
                 onConfirm={confirmDeleteCourse}
                 title="حذف دوره"
                 message="آیا از حذف این دوره اطمینان دارید؟ تمام سرفصل‌های آن نیز حذف خواهند شد."
+                confirmText="بله، حذف کن"
             />
         </>
     );

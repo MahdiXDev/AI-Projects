@@ -17,4 +17,6 @@ export interface Course {
 export interface User {
   email: string;
   username: string;
+  profilePicture?: string | null;
+  createdAt: number;
 }
