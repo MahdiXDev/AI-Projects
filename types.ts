@@ -2,7 +2,8 @@ export interface Topic {
   id: string;
   title: string;
   notes: string;
-  imageUrl?: string;
+  imageUrls?: string[];
+  createdAt: number;
 }
 
 export interface Course {
@@ -10,4 +11,9 @@ export interface Course {
   name: string;
   description: string;
   topics: Topic[];
+  createdAt: number;
+}
+
+export interface User {
+  email: string;
 }

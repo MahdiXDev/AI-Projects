@@ -1,9 +1,8 @@
-import React, { useContext, useState, useRef, useEffect } from 'react';
+import React, { useContext, useState, useRef, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { Topic } from '../types';
 import { CourseContext } from '../App';
 import Modal, { ConfirmModal } from '../components/Modal';
-import { ArrowLeftIcon, PlusIcon, DotsVerticalIcon, PencilIcon, TrashIcon } from '../components/icons';
 
 const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void, onDelete: () => void }> = ({ topic, index, onEdit, onDelete }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,23 +20,21 @@ const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void,
 
   return (
     <div className="group flex items-center justify-between rounded-xl border border-white/10 bg-gray-800/40 p-4 transition-all duration-300 hover:bg-gray-700/50 hover:border-sky-400/30">
-      <Link to={`topic/${topic.id}`} className="flex items-center gap-4 flex-grow">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-sky-400 font-bold">{index + 1}</span>
-        <span className="font-medium text-white group-hover:text-sky-300 transition-colors">{topic.title}</span>
+      <Link to={`topic/${topic.id}`} className="flex items-center gap-4 flex-grow min-w-0">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-sky-400 font-bold shrink-0">{index + 1}</span>
+        <span className="font-medium text-white group-hover:text-sky-300 transition-colors truncate">{topic.title}</span>
       </Link>
       <div className="relative" ref={menuRef}>
         <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors">
-          <DotsVerticalIcon />
+          <span className="text-xl">⋮</span>
         </button>
         {menuOpen && (
-          <div className="absolute left-0 mt-2 w-40 origin-top-left rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
+          <div className="absolute left-0 mt-2 w-40 origin-top-left rounded-lg bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
             <div className="py-1">
               <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/80">
-                <PencilIcon className="h-4 w-4" />
                 ویرایش
               </button>
               <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">
-                <TrashIcon className="h-4 w-4" />
                 حذف
               </button>
             </div>
@@ -57,8 +54,21 @@ const CoursePage: React.FC = () => {
   const [topicTitle, setTopicTitle] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const course = courses.find(c => c.id === courseId);
+
+  const displayedTopics = useMemo(() => {
+    if (!course) return [];
+    
+    const lowercasedQuery = searchQuery.toLocaleLowerCase('fa');
+    const filteredTopics = course.topics.filter(topic =>
+        topic.title.toLocaleLowerCase('fa').includes(lowercasedQuery)
+    );
+
+    // Default sort by newest first
+    return [...filteredTopics].sort((a, b) => b.createdAt - a.createdAt);
+  }, [course, searchQuery]);
 
   if (!course) {
     return <div className="text-center text-red-400">دوره یافت نشد.</div>;
@@ -104,28 +114,38 @@ const CoursePage: React.FC = () => {
   return (
     <>
       <header className="mb-8">
-        <button onClick={() => navigate('/')} className="flex items-center gap-2 text-sky-400 hover:text-sky-300 mb-4 transition-colors">
-          <ArrowLeftIcon className="h-6 w-6 rtl:scale-x-[-1]" />
+        <button onClick={() => navigate('/')} className="flex items-center text-sky-400 hover:text-sky-300 mb-4 transition-colors">
           بازگشت به دوره‌ها
         </button>
-        <div className="flex items-center justify-between">
-            <div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-grow">
                 <h1 className="text-4xl font-bold tracking-tight text-white">{course.name}</h1>
                 <p className="mt-1 text-gray-400">{course.description}</p>
             </div>
             <button
             onClick={openAddModal}
-            className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
+            className="flex items-center rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 shrink-0 self-start md:self-center"
             >
-            <PlusIcon className="h-5 w-5" />
             سرفصل جدید
             </button>
         </div>
       </header>
+
+      <div className="mb-6">
+        <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="جستجوی سرفصل..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border-white/20 bg-gray-700/50 px-3 py-2 text-white placeholder-gray-400 focus:border-sky-500 focus:ring-sky-500 transition"
+            />
+        </div>
+      </div>
       
       <div className="space-y-4">
-        {course.topics.length > 0 ? (
-          course.topics.map((topic, index) => (
+        {displayedTopics.length > 0 ? (
+          displayedTopics.map((topic, index) => (
             <TopicListItem 
               key={topic.id} 
               topic={topic} 
@@ -136,8 +156,8 @@ const CoursePage: React.FC = () => {
           ))
         ) : (
           <div className="text-center py-12 rounded-xl border-2 border-dashed border-gray-700">
-            <h3 className="text-xl font-medium text-gray-400">هنوز سرفصلی وجود ندارد.</h3>
-            <p className="text-gray-500 mt-1">برای شروع، اولین سرفصل خود را اضافه کنید!</p>
+            <h3 className="text-xl font-medium text-gray-400">{searchQuery ? 'نتیجه‌ای یافت نشد' : 'هنوز سرفصلی وجود ندارد.'}</h3>
+            <p className="text-gray-500 mt-1">{searchQuery ? `هیچ سرفصلی با عبارت "${searchQuery}" مطابقت ندارد.` : 'برای شروع، اولین سرفصل خود را اضافه کنید!'}</p>
           </div>
         )}
       </div>
@@ -152,7 +172,7 @@ const CoursePage: React.FC = () => {
               value={topicTitle}
               onChange={(e) => setTopicTitle(e.target.value)}
               placeholder="مثال: کامپوننت‌ها و Props"
-              className="w-full rounded-md border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
+              className="w-full rounded-lg border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
               required
             />
           </div>

@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CourseContext } from '../App';
-import { ArrowLeftIcon, UploadIcon, XIcon } from '../components/icons';
 
 const TopicDetailPage: React.FC = () => {
   const { courseId, topicId } = useParams<{ courseId: string; topicId: string }>();
@@ -9,7 +9,8 @@ const TopicDetailPage: React.FC = () => {
   const { courses, dispatch } = useContext(CourseContext);
 
   const [notes, setNotes] = useState('');
-  const [imageUrl, setImageUrl] = useState<string | undefined>('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDirty, setIsDirty] = useState(false);
 
   const course = courses.find(c => c.id === courseId);
@@ -18,7 +19,8 @@ const TopicDetailPage: React.FC = () => {
   useEffect(() => {
     if (topic) {
       setNotes(topic.notes);
-      setImageUrl(topic.imageUrl);
+      setImageUrls(topic.imageUrls || []);
+      setCurrentImageIndex(0);
       setIsDirty(false);
     }
   }, [topic]);
@@ -33,19 +35,30 @@ const TopicDetailPage: React.FC = () => {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const filePromises = Array.from(files).map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(filePromises).then(newBase64Urls => {
+        setImageUrls(prev => [...prev, ...newBase64Urls]);
         setIsDirty(true);
-      };
-      reader.readAsDataURL(file);
+      }).catch(error => console.error("Error reading files:", error));
     }
   };
   
-  const removeImage = () => {
-    setImageUrl('');
+  const removeImage = (indexToRemove: number) => {
+    const newImageUrls = imageUrls.filter((_, index) => index !== indexToRemove);
+    setImageUrls(newImageUrls);
+    if (currentImageIndex >= newImageUrls.length) {
+      setCurrentImageIndex(Math.max(0, newImageUrls.length - 1));
+    }
     setIsDirty(true);
   }
 
@@ -53,18 +66,19 @@ const TopicDetailPage: React.FC = () => {
     if (courseId && topicId) {
       dispatch({
         type: 'UPDATE_TOPIC_DETAILS',
-        payload: { courseId, topicId, notes, imageUrl },
+        payload: { courseId, topicId, notes, imageUrls },
       });
       setIsDirty(false);
-      // Optional: Show a success message
     }
   };
+  
+  const goToPrevious = () => setCurrentImageIndex(prev => (prev === 0 ? imageUrls.length - 1 : prev - 1));
+  const goToNext = () => setCurrentImageIndex(prev => (prev === imageUrls.length - 1 ? 0 : prev + 1));
 
   return (
     <div>
       <header className="mb-8">
-        <button onClick={() => navigate(`/course/${courseId}`)} className="flex items-center gap-2 text-sky-400 hover:text-sky-300 mb-4 transition-colors">
-          <ArrowLeftIcon className="h-6 w-6 rtl:scale-x-[-1]" />
+        <button onClick={() => navigate(`/course/${courseId}`)} className="flex items-center text-sky-400 hover:text-sky-300 mb-4 transition-colors">
           بازگشت به سرفصل‌ها
         </button>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -93,34 +107,73 @@ const TopicDetailPage: React.FC = () => {
             onChange={handleNotesChange}
             rows={15}
             placeholder="یادداشت‌های خود را اینجا بنویسید..."
-            className="w-full h-full resize-none rounded-md border-white/20 bg-gray-700/50 p-4 text-gray-200 focus:border-sky-500 focus:ring-sky-500 transition placeholder-gray-500"
+            className="w-full resize-none rounded-lg border-white/20 bg-gray-700/50 p-4 text-gray-200 focus:border-sky-500 focus:ring-sky-500 transition placeholder-gray-500"
           />
         </div>
         
-        {/* Image Uploader */}
-        <div className="rounded-xl border border-white/10 bg-gray-800/40 p-6 shadow-lg">
-          <h2 className="text-lg font-semibold text-white mb-3">تصویر مرتبط</h2>
-          <div className="w-full aspect-video rounded-md border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-700/50 overflow-hidden">
-            {imageUrl ? (
-              <div className="relative w-full h-full group">
-                <img src={imageUrl} alt="Topic visual" className="w-full h-full object-cover" />
-                <button 
-                  onClick={removeImage} 
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                  <XIcon className="h-5 w-5" />
-                </button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <UploadIcon className="mx-auto h-12 w-12 text-gray-500" />
-                <label htmlFor="file-upload" className="relative cursor-pointer mt-2 text-sm font-medium text-sky-400 hover:text-sky-300">
-                  <span>بارگذاری تصویر</span>
-                  <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
-                </label>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF تا ۱۰ مگابایت</p>
-              </div>
+        {/* Image Uploader & Slider */}
+        <div className="rounded-xl border border-white/10 bg-gray-800/40 p-6 shadow-lg flex flex-col justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-3">تصاویر مرتبط</h2>
+            <div className="relative w-full aspect-video rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-700/50 overflow-hidden group">
+              {imageUrls.length > 0 ? (
+                <>
+                  <AnimatePresence initial={false}>
+                    <motion.img
+                      key={currentImageIndex}
+                      src={imageUrls[currentImageIndex]}
+                      alt={`Topic visual ${currentImageIndex + 1}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      className="absolute w-full h-full object-cover"
+                    />
+                  </AnimatePresence>
+                  
+                  <button 
+                    onClick={() => removeImage(currentImageIndex)} 
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-red-500/80"
+                    aria-label="Remove image"
+                  >
+                    <span className="font-bold leading-none">&times;</span>
+                  </button>
+
+                  {imageUrls.length > 1 && (
+                    <>
+                      <button 
+                        onClick={goToPrevious}
+                        className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        <span className="text-xl">&gt;</span>
+                      </button>
+                      <button
+                        onClick={goToNext}
+                        className="absolute top-1/2 left-2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        <span className="text-xl">&lt;</span>
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className="text-center p-4">
+                  <span className="text-5xl" role="img" aria-label="Cloud upload">☁️</span>
+                  <p className="mt-2 text-sm text-gray-400">تصویری آپلود نشده است</p>
+                </div>
+              )}
+            </div>
+            {imageUrls.length > 1 && (
+              <p className="text-center text-sm text-gray-400 mt-2">{currentImageIndex + 1} / {imageUrls.length}</p>
             )}
           </div>
+          
+          <div className="mt-4">
+            <label htmlFor="file-upload" className="relative cursor-pointer w-full block text-center rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-300 transition-colors duration-300 hover:bg-sky-500/30">
+              <span>{imageUrls.length > 0 ? 'افزودن تصاویر بیشتر' : 'بارگذاری تصویر'}</span>
+              <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" multiple onChange={handleImageUpload} />
+            </label>
+            <p className="text-xs text-gray-500 text-center mt-1">PNG, JPG, GIF تا ۱۰ مگابایت</p>
+          </div>
+
         </div>
       </div>
     </div>
