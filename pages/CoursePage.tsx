@@ -30,15 +30,15 @@ const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void,
           <DotsVerticalIcon />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
+          <div className="absolute left-0 mt-2 w-40 origin-top-left rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-white/10">
             <div className="py-1">
-              <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/80">
+              <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/80">
                 <PencilIcon className="h-4 w-4" />
-                Edit
+                ویرایش
               </button>
-              <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">
+              <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/20">
                 <TrashIcon className="h-4 w-4" />
-                Delete
+                حذف
               </button>
             </div>
           </div>
@@ -61,7 +61,7 @@ const CoursePage: React.FC = () => {
   const course = courses.find(c => c.id === courseId);
 
   if (!course) {
-    return <div className="text-center text-red-400">Course not found.</div>;
+    return <div className="text-center text-red-400">دوره یافت نشد.</div>;
   }
   
   const openAddModal = () => {
@@ -105,8 +105,8 @@ const CoursePage: React.FC = () => {
     <>
       <header className="mb-8">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-sky-400 hover:text-sky-300 mb-4 transition-colors">
-          <ArrowLeftIcon />
-          Back to Courses
+          <ArrowLeftIcon className="h-6 w-6 rtl:scale-x-[-1]" />
+          بازگشت به دوره‌ها
         </button>
         <div className="flex items-center justify-between">
             <div>
@@ -118,7 +118,7 @@ const CoursePage: React.FC = () => {
             className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
             >
             <PlusIcon className="h-5 w-5" />
-            New Topic
+            سرفصل جدید
             </button>
         </div>
       </header>
@@ -136,22 +136,22 @@ const CoursePage: React.FC = () => {
           ))
         ) : (
           <div className="text-center py-12 rounded-xl border-2 border-dashed border-gray-700">
-            <h3 className="text-xl font-medium text-gray-400">No topics yet.</h3>
-            <p className="text-gray-500 mt-1">Add your first topic to get started!</p>
+            <h3 className="text-xl font-medium text-gray-400">هنوز سرفصلی وجود ندارد.</h3>
+            <p className="text-gray-500 mt-1">برای شروع، اولین سرفصل خود را اضافه کنید!</p>
           </div>
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTopic ? "Edit Topic" : "Add New Topic"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTopic ? "ویرایش سرفصل" : "افزودن سرفصل جدید"}>
         <form onSubmit={(e) => { e.preventDefault(); handleSaveTopic(); }}>
           <div>
-            <label htmlFor="topic-title" className="block text-sm font-medium text-gray-300 mb-1">Topic Title</label>
+            <label htmlFor="topic-title" className="block text-sm font-medium text-gray-300 mb-1">عنوان سرفصل</label>
             <input
               id="topic-title"
               type="text"
               value={topicTitle}
               onChange={(e) => setTopicTitle(e.target.value)}
-              placeholder="e.g., Components and Props"
+              placeholder="مثال: کامپوننت‌ها و Props"
               className="w-full rounded-md border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
               required
             />
@@ -161,7 +161,7 @@ const CoursePage: React.FC = () => {
               type="submit"
               className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
             >
-              {editingTopic ? 'Save Changes' : 'Create Topic'}
+              {editingTopic ? 'ذخیره تغییرات' : 'ایجاد سرفصل'}
             </button>
           </div>
         </form>
@@ -171,8 +171,8 @@ const CoursePage: React.FC = () => {
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={confirmDeleteTopic}
-        title="Delete Topic"
-        message="Are you sure you want to delete this topic? This action cannot be undone."
+        title="حذف سرفصل"
+        message="آیا از حذف این سرفصل اطمینان دارید؟ این عمل غیرقابل بازگشت است."
       />
     </>
   );

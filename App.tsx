@@ -1,4 +1,4 @@
-import React, { useReducer, createContext, Dispatch } from 'react';
+import React, { useReducer, createContext, Dispatch, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import type { Course, Topic } from './types';
 import HomePage from './pages/HomePage';
@@ -19,21 +19,21 @@ type Action =
 const initialState: Course[] = [
   {
     id: 'course-1',
-    name: 'Introduction to React',
-    description: 'Learn the fundamentals of building modern web applications with React.',
+    name: 'مقدمه‌ای بر ری‌اکت',
+    description: 'اصول ساخت برنامه‌های وب مدرن با ری‌اکت را بیاموزید.',
     topics: [
-      { id: 'topic-1-1', title: 'Components and Props', notes: 'Components are the building blocks of React applications. Props are how you pass data from parent to child.', imageUrl: 'https://picsum.photos/800/400?random=1' },
-      { id: 'topic-1-2', title: 'State and Lifecycle', notes: 'State allows components to manage their own data. Lifecycle methods let you run code at particular times in a component\'s life.', imageUrl: 'https://picsum.photos/800/400?random=2' },
-      { id: 'topic-1-3', title: 'Handling Events', notes: 'Learn how to handle user interactions like clicks and form submissions.', imageUrl: '' },
+      { id: 'topic-1-1', title: 'کامپوننت‌ها و Props', notes: 'کامپوننت‌ها بلوک‌های سازنده برنامه‌های ری‌اکت هستند. Props روشی برای انتقال داده از والد به فرزند است.', imageUrl: 'https://picsum.photos/800/400?random=1' },
+      { id: 'topic-1-2', title: 'State و چرخه حیات', notes: 'State به کامپوننت‌ها اجازه می‌دهد تا داده‌های خود را مدیریت کنند. متدهای چرخه حیات به شما امکان می‌دهند کد را در زمان‌های خاصی از عمر کامپوننت اجرا کنید.', imageUrl: 'https://picsum.photos/800/400?random=2' },
+      { id: 'topic-1-3', title: 'مدیریت رویدادها', notes: 'یاد بگیرید چگونه تعاملات کاربر مانند کلیک و ارسال فرم را مدیریت کنید.', imageUrl: '' },
     ],
   },
   {
     id: 'course-2',
-    name: 'Advanced Tailwind CSS',
-    description: 'Master the utility-first CSS framework for rapid UI development.',
+    name: 'Tailwind CSS پیشرفته',
+    description: 'بر فریم‌ورک CSS مبتنی بر ابزار برای توسعه سریع UI مسلط شوید.',
     topics: [
-      { id: 'topic-2-1', title: 'Customizing Your Theme', notes: 'Extend Tailwind\'s default theme with your own colors, spacing, and fonts.', imageUrl: 'https://picsum.photos/800/400?random=3' },
-      { id: 'topic-2-2', title: 'Just-in-Time (JIT) Compiler', notes: 'Understand the benefits of the JIT engine for performance and developer experience.', imageUrl: '' },
+      { id: 'topic-2-1', title: 'شخصی‌سازی تم', notes: 'تم پیش‌فرض Tailwind را با رنگ‌ها، فاصله‌گذاری و فونت‌های خود گسترش دهید.', imageUrl: 'https://picsum.photos/800/400?random=3' },
+      { id: 'topic-2-2', title: 'کامپایلر Just-in-Time (JIT)', notes: 'مزایای موتور JIT را برای عملکرد و تجربه توسعه‌دهنده درک کنید.', imageUrl: '' },
     ],
   },
 ];
@@ -116,18 +116,42 @@ const courseReducer = (state: Course[], action: Action): Course[] => {
   }
 };
 
+const COURSE_STORAGE_KEY = 'course-syllabus-data';
+
+const initializer = (): Course[] => {
+  try {
+    const storedData = localStorage.getItem(COURSE_STORAGE_KEY);
+    if (storedData) {
+      return JSON.parse(storedData);
+    }
+  } catch (error) {
+    console.error("Error reading from localStorage:", error);
+  }
+  return initialState;
+};
+
+
 export const CourseContext = createContext<{
   courses: Course[];
   dispatch: Dispatch<Action>;
 }>({
-  courses: initialState,
+  courses: [],
   dispatch: () => null,
 });
 
 // --- MAIN APP COMPONENT ---
 
 const App = () => {
-  const [courses, dispatch] = useReducer(courseReducer, initialState);
+  const [courses, dispatch] = useReducer(courseReducer, initializer());
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COURSE_STORAGE_KEY, JSON.stringify(courses));
+    } catch (error) {
+      console.error("Error writing to localStorage:", error);
+    }
+  }, [courses]);
+
 
   return (
     <CourseContext.Provider value={{ courses, dispatch }}>

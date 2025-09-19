@@ -7,7 +7,7 @@ import { PlusIcon, PencilIcon, TrashIcon } from '../components/icons';
 
 const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () => void }> = ({ course, onEdit, onDelete }) => (
   <div className="group relative rounded-xl border border-white/10 bg-gray-800/40 p-6 shadow-lg transition-all duration-300 hover:bg-gray-700/50 hover:border-sky-400/30">
-    <Link to={`/course/${course.id}`} className="absolute inset-0 z-10" aria-label={`View ${course.name}`}></Link>
+    <Link to={`/course/${course.id}`} className="absolute inset-0 z-10" aria-label={`مشاهده ${course.name}`}></Link>
     <div className="relative z-20">
       <div className="flex justify-between items-start">
         <div>
@@ -15,11 +15,11 @@ const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () =>
           <p className="mt-2 text-gray-400 text-sm">{course.description}</p>
         </div>
         <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-           <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }} className="p-2 rounded-full hover:bg-white/10" aria-label="Edit course"><PencilIcon className="w-5 h-5"/></button>
-           <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="p-2 rounded-full hover:bg-red-500/20 text-red-400" aria-label="Delete course"><TrashIcon className="w-5 h-5"/></button>
+           <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }} className="p-2 rounded-full hover:bg-white/10" aria-label="ویرایش دوره"><PencilIcon className="w-5 h-5"/></button>
+           <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="p-2 rounded-full hover:bg-red-500/20 text-red-400" aria-label="حذف دوره"><TrashIcon className="w-5 h-5"/></button>
         </div>
       </div>
-      <p className="mt-4 text-xs font-medium text-sky-400">{course.topics.length} {course.topics.length === 1 ? 'Topic' : 'Topics'}</p>
+      <p className="mt-4 text-xs font-medium text-sky-400">{course.topics.length} سرفصل</p>
     </div>
   </div>
 );
@@ -74,13 +74,13 @@ const HomePage: React.FC = () => {
   return (
     <>
       <header className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-white">My Courses</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-white">دوره‌های من</h1>
         <button
           onClick={openAddModal}
           className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 hover:shadow-sky-400/40"
         >
           <PlusIcon className="h-5 w-5" />
-          New Course
+          دوره جدید
         </button>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,29 +94,29 @@ const HomePage: React.FC = () => {
         ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCourse ? "Edit Course" : "Add New Course"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCourse ? "ویرایش دوره" : "افزودن دوره جدید"}>
         <form onSubmit={(e) => { e.preventDefault(); handleSaveCourse(); }}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="course-name" className="block text-sm font-medium text-gray-300 mb-1">Course Name</label>
+              <label htmlFor="course-name" className="block text-sm font-medium text-gray-300 mb-1">نام دوره</label>
               <input
                 id="course-name"
                 type="text"
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
-                placeholder="e.g., Introduction to React"
+                placeholder="مثال: مقدمه‌ای بر ری‌اکت"
                 className="w-full rounded-md border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
                 required
               />
             </div>
             <div>
-              <label htmlFor="course-desc" className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+              <label htmlFor="course-desc" className="block text-sm font-medium text-gray-300 mb-1">توضیحات</label>
               <textarea
                 id="course-desc"
                 value={courseDescription}
                 onChange={(e) => setCourseDescription(e.target.value)}
                 rows={3}
-                placeholder="A short description of the course."
+                placeholder="توضیحات مختصری درباره دوره."
                 className="w-full rounded-md border-white/20 bg-gray-700/50 px-3 py-2 text-white focus:border-sky-500 focus:ring-sky-500 transition"
               />
             </div>
@@ -126,7 +126,7 @@ const HomePage: React.FC = () => {
               type="submit"
               className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
             >
-              {editingCourse ? 'Save Changes' : 'Create Course'}
+              {editingCourse ? 'ذخیره تغییرات' : 'ایجاد دوره'}
             </button>
           </div>
         </form>
@@ -136,8 +136,8 @@ const HomePage: React.FC = () => {
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={confirmDeleteCourse}
-        title="Delete Course"
-        message="Are you sure you want to delete this course and all its topics? This action cannot be undone."
+        title="حذف دوره"
+        message="آیا از حذف این دوره و تمام سرفصل‌های آن اطمینان دارید؟ این عمل غیرقابل بازگشت است."
       />
     </>
   );

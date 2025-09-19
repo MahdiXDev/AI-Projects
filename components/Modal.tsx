@@ -61,14 +61,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, onClose, onC
             type="button"
             className="rounded-lg bg-gray-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-300 hover:bg-gray-500"
           >
-            Cancel
+            انصراف
           </button>
           <button
             onClick={onConfirm}
             type="button"
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:bg-red-500"
           >
-            Confirm Delete
+            تایید حذف
           </button>
         </div>
       </div>
