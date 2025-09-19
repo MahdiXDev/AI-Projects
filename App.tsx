@@ -1,6 +1,7 @@
 
 
 
+
 import React, { createContext, useReducer, useEffect, useState, useMemo, useContext, useRef } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -135,7 +136,12 @@ const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
     // Persist all courses to the single global key
     useEffect(() => {
-        window.localStorage.setItem('global_courses', JSON.stringify(allCourses));
+        try {
+            window.localStorage.setItem('global_courses', JSON.stringify(allCourses));
+        } catch (error) {
+            console.error("Failed to save courses to localStorage:", error);
+            alert("خطا در ذخیره‌سازی اطلاعات. ممکن است به دلیل حجم بالای تصاویر، حافظه مرورگر پر شده باشد. لطفاً تصاویر کوچک‌تری را امتحان کنید یا برخی از تصاویر قدیمی را حذف کنید.");
+        }
     }, [allCourses]);
 
     // Filter courses for the currently logged-in user
@@ -182,11 +188,21 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const navigate = useNavigate();
 
     useEffect(() => {
-        window.localStorage.setItem('users', JSON.stringify(users));
+        try {
+            window.localStorage.setItem('users', JSON.stringify(users));
+        } catch (error) {
+            console.error("Failed to save users to localStorage:", error);
+            alert("خطا در ذخیره‌سازی اطلاعات کاربران. ممکن است حافظه مرورگر پر شده باشد.");
+        }
     }, [users]);
     
     useEffect(() => {
-        window.localStorage.setItem('currentUser', JSON.stringify(user));
+        try {
+            window.localStorage.setItem('currentUser', JSON.stringify(user));
+        } catch (error) {
+            console.error("Failed to save current user to localStorage:", error);
+            alert("خطا در ذخیره‌سازی اطلاعات کاربر فعلی. ممکن است حافظه مرورگر پر شده باشد.");
+        }
         if (!isInitialized) setIsInitialized(true);
     }, [user, isInitialized]);
     
