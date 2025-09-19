@@ -1,8 +1,9 @@
 import React, { useContext, useState, useRef, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import type { Topic } from '../types';
 import { CourseContext } from '../App';
 import Modal, { ConfirmModal } from '../components/Modal';
+import { DotsVerticalIcon, PencilIcon, TrashIcon, PlusIcon, SearchIcon, ArrowRightIcon } from '../components/icons';
 
 const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void, onDelete: () => void }> = ({ topic, index, onEdit, onDelete }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,22 +20,24 @@ const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void,
   }, []);
 
   return (
-    <div className="group flex items-center justify-between rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-800/40 p-4 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-sm hover:shadow-lg">
+    <div className="group flex items-center justify-between rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-4 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-md hover:shadow-lg">
       <Link to={`topic/${topic.id}`} className="flex items-center gap-4 flex-grow min-w-0">
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-sky-600 dark:text-sky-400 font-bold shrink-0">{index + 1}</span>
         <span className="font-medium text-gray-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors truncate">{topic.title}</span>
       </Link>
       <div className="relative" ref={menuRef}>
         <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors">
-           <span className="font-bold">...</span>
+           <DotsVerticalIcon className="w-5 h-5" />
         </button>
         {menuOpen && (
-          <div className="absolute left-0 mt-2 w-40 origin-top-left rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-black/10 dark:border-white/10">
+          <div className="absolute left-0 mt-2 w-40 origin-top-left rounded-lg bg-white/80 dark:bg-gray-800/90 backdrop-blur-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 border border-black/10 dark:border-white/10">
             <div className="py-1">
-              <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/80">
+              <button onClick={() => { onEdit(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10">
+                <PencilIcon className="w-4 h-4" />
                 <span>ویرایش</span>
               </button>
               <button onClick={() => { onDelete(); setMenuOpen(false); }} className="w-full text-right flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-500/20">
+                <TrashIcon className="w-4 h-4" />
                 <span>حذف</span>
               </button>
             </div>
@@ -47,7 +50,6 @@ const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void,
 
 const CoursePage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const navigate = useNavigate();
   const { courses, dispatch } = useContext(CourseContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
@@ -66,7 +68,6 @@ const CoursePage: React.FC = () => {
         topic.title.toLocaleLowerCase('fa').includes(lowercasedQuery)
     );
 
-    // Sort by oldest first
     return [...filteredTopics].sort((a, b) => a.createdAt - b.createdAt);
   }, [course, searchQuery]);
 
@@ -114,10 +115,10 @@ const CoursePage: React.FC = () => {
   return (
     <>
       <header className="mb-8">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
-          <span>&rarr;</span>
+        <Link to="/" className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
+          <ArrowRightIcon className="w-5 h-5 transform scale-x-[-1]" />
           <span>بازگشت به دوره‌ها</span>
-        </button>
+        </Link>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex-grow">
                 <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">{course.name}</h1>
@@ -127,7 +128,7 @@ const CoursePage: React.FC = () => {
             onClick={openAddModal}
             className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 shrink-0 self-start md:self-center"
             >
-              <span>+</span>
+              <PlusIcon className="w-5 h-5" />
               <span>سرفصل جدید</span>
             </button>
         </div>
@@ -136,7 +137,7 @@ const CoursePage: React.FC = () => {
       <div className="mb-6">
         <div className="relative flex-grow">
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-              🔍
+              <SearchIcon className="w-5 h-5" />
             </span>
             <input
               type="text"
@@ -162,7 +163,8 @@ const CoursePage: React.FC = () => {
         ) : (
           <div className="text-center py-12 rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-700">
             <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400">{searchQuery ? 'نتیجه‌ای یافت نشد' : 'هنوز سرفصلی وجود ندارد.'}</h3>
-            <p className="text-gray-500 mt-1">{searchQuery ? `هیچ سرفصلی با عبارت "${searchQuery}" مطابقت ندارد.` : 'برای شروع، اولین سرفصل خود را اضافه کنید!'}</p>
+            <p className="text-gray-500 mt-1">{searchQuery ? `هیچ سرفصلی با عبارت "${searchQuery}" مطابقت ندارد.` : 'برای شروع، اولین سرفصل خود را اضافه کنید!'}
+            </p>
           </div>
         )}
       </div>

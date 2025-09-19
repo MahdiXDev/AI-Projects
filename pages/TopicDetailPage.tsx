@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CourseContext } from '../App';
 import { ImageLightbox } from '../components/Modal';
+import { ArrowRightIcon, SaveIcon, ImageIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon, UploadIcon } from '../components/icons';
 
 const TopicDetailPage: React.FC = () => {
   const { courseId, topicId } = useParams<{ courseId: string; topicId: string }>();
@@ -82,8 +83,8 @@ const TopicDetailPage: React.FC = () => {
       <div>
         <header className="mb-8">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
-              <span>&rarr;</span>
-              <span>بازگشت به سرفصل‌ها</span>
+              <ArrowRightIcon className="w-5 h-5 transform scale-x-[-1]" />
+              <span>بازگشت</span>
           </button>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
@@ -95,15 +96,16 @@ const TopicDetailPage: React.FC = () => {
                   onClick={handleSaveChanges}
                   className="mt-4 md:mt-0 w-full md:w-auto shrink-0 flex items-center gap-2 justify-center rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
                   >
+                    <SaveIcon className="w-5 h-5" />
                     <span>ذخیره تغییرات</span>
                   </button>
               )}
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-8">
           {/* Notes Editor */}
-          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-800/40 p-6 shadow-lg">
+          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 shadow-lg backdrop-blur-lg">
             <label htmlFor="notes" className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">یادداشت‌ها</label>
             <textarea
               id="notes"
@@ -116,11 +118,11 @@ const TopicDetailPage: React.FC = () => {
           </div>
           
           {/* Image Uploader & Slider */}
-          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-gray-800/40 p-6 shadow-lg flex flex-col justify-between">
+          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 shadow-lg backdrop-blur-lg flex flex-col justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">تصاویر مرتبط</h2>
               <div 
-                className={`relative w-full aspect-video rounded-lg border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center bg-gray-100 dark:bg-gray-700/50 overflow-hidden group ${imageUrls.length > 0 ? 'cursor-pointer' : ''}`}
+                className={`relative w-full aspect-video rounded-lg border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center bg-gray-100/50 dark:bg-gray-700/50 overflow-hidden group ${imageUrls.length > 0 ? 'cursor-pointer' : ''}`}
                 onClick={() => imageUrls.length > 0 && setLightboxImageUrl(imageUrls[currentImageIndex])}
               >
                 {imageUrls.length > 0 ? (
@@ -143,7 +145,7 @@ const TopicDetailPage: React.FC = () => {
                       className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-red-500/80"
                       aria-label="Remove image"
                     >
-                      <span role="img" aria-label="trash">🗑️</span>
+                      <TrashIcon className="w-4 h-4" />
                     </button>
 
                     {imageUrls.length > 1 && (
@@ -151,19 +153,19 @@ const TopicDetailPage: React.FC = () => {
                         <button 
                           onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
                           className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                          <span>&gt;</span>
+                          <ChevronRightIcon className="w-6 h-6" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); goToNext(); }}
                           className="absolute top-1/2 left-2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                          <span>&lt;</span>
+                          <ChevronLeftIcon className="w-6 h-6" />
                         </button>
                       </>
                     )}
                   </>
                 ) : (
                   <div className="text-center p-4">
-                    <p className="text-5xl mb-2">🖼️</p>
+                    <ImageIcon className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto" />
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">تصویری آپلود نشده است</p>
                   </div>
                 )}
@@ -175,10 +177,11 @@ const TopicDetailPage: React.FC = () => {
             
             <div className="mt-4">
               <label htmlFor="file-upload" className="relative cursor-pointer w-full flex items-center justify-center gap-2 text-center rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-600 dark:text-sky-300 transition-colors duration-300 hover:bg-sky-500/30">
+                <UploadIcon className="w-5 h-5" />
                 <span>{imageUrls.length > 0 ? 'افزودن تصاویر بیشتر' : 'بارگذاری تصویر'}</span>
                 <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" multiple onChange={handleImageUpload} />
               </label>
-              <p className="text-xs text-gray-500 text-center mt-1">PNG, JPG, GIF تا ۱۰ مگابایت</p>
+              <p className="text-xs text-gray-500 text-center mt-2">PNG, JPG, GIF تا ۱۰ مگابایت</p>
             </div>
 
           </div>

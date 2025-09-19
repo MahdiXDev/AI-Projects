@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { XIcon } from './icons';
 
 interface ModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
                 aria-label="بستن"
                 className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-200"
               >
-                <span className="w-6 h-6 flex items-center justify-center text-2xl font-light">&times;</span>
+                <XIcon className="w-6 h-6" />
               </button>
             </div>
             <div className="mt-6">
@@ -140,7 +141,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ isOpen, imageUrl, 
                 aria-label="بستن تصویر"
                 className="absolute top-4 right-4 p-2 rounded-full text-white bg-black/50 hover:bg-black/80 transition-colors duration-200 z-[70]"
               >
-                <span className="w-6 h-6 flex items-center justify-center text-2xl font-light">&times;</span>
+                <XIcon className="w-6 h-6" />
             </button>
         </motion.div>
       )}
