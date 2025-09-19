@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { User } from '../../types';
-import { AuthContext } from '../../App';
+import { AuthContext, CourseContext } from '../../App';
 import { ConfirmModal } from '../../components/Modal';
 import { ArrowRightIcon } from '../../components/icons';
 
@@ -9,6 +9,7 @@ const AdminManageUserPage: React.FC = () => {
     const { userEmail } = useParams<{ userEmail: string }>();
     const navigate = useNavigate();
     const { getAllUsers, deleteUserByEmail } = useContext(AuthContext);
+    const { dispatch: dispatchCourseAction } = useContext(CourseContext);
     const [managedUser, setManagedUser] = useState<User | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
@@ -24,6 +25,9 @@ const AdminManageUserPage: React.FC = () => {
 
     const handleDelete = () => {
         if (managedUser) {
+            // First, dispatch action to delete user's courses
+            dispatchCourseAction({ type: 'DELETE_COURSES_BY_USER', payload: { userEmail: managedUser.email } });
+            // Then, delete the user
             deleteUserByEmail(managedUser.email);
             navigate('/admin/users');
         }

@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import AdminUsersListPage from './pages/admin/AdminUsersListPage';
 import AdminManageUserPage from './pages/admin/AdminManageUserPage';
 import AdminEditUserPage from './pages/admin/AdminEditUserPage';
+import AdminUserCoursesPage from './pages/admin/AdminUserCoursesPage'; // New admin page
 import { SunIcon, MoonIcon, LogoutIcon } from './components/icons';
 import { ConfirmModal } from './components/Modal';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -34,19 +35,17 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
 // --- COURSE CONTEXT & REDUCER ---
 
 type CourseAction =
-  | { type: 'SET_COURSES'; payload: { courses: Course[] } }
-  | { type: 'ADD_COURSE'; payload: { name: string; description: string } }
+  | { type: 'ADD_COURSE'; payload: { name: string; description: string; userEmail: string } }
   | { type: 'EDIT_COURSE'; payload: { courseId: string; name: string; description: string } }
   | { type: 'DELETE_COURSE'; payload: { courseId: string } }
   | { type: 'ADD_TOPIC'; payload: { courseId: string; title: string } }
   | { type: 'EDIT_TOPIC'; payload: { courseId: string; topicId: string; title: string } }
   | { type: 'DELETE_TOPIC'; payload: { courseId: string; topicId: string } }
-  | { type: 'UPDATE_TOPIC_DETAILS'; payload: { courseId: string; topicId: string; notes: string; imageUrls: string[] } };
+  | { type: 'UPDATE_TOPIC_DETAILS'; payload: { courseId: string; topicId: string; notes: string; imageUrls: string[] } }
+  | { type: 'DELETE_COURSES_BY_USER'; payload: { userEmail: string } };
 
 const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   switch (action.type) {
-    case 'SET_COURSES':
-      return action.payload.courses;
     case 'ADD_COURSE': {
       const newCourse: Course = {
         id: uuidv4(),
@@ -54,6 +53,7 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
         description: action.payload.description,
         topics: [],
         createdAt: Date.now(),
+        userEmail: action.payload.userEmail,
       };
       return [...state, newCourse];
     }
@@ -111,41 +111,48 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
             }
           : course
       );
+    case 'DELETE_COURSES_BY_USER':
+        return state.filter(course => course.userEmail !== action.payload.userEmail);
     default:
       return state;
   }
 };
 
 interface CourseContextType {
-    courses: Course[];
+    courses: Course[]; // Courses for the logged-in user
+    allCourses: Course[]; // All courses, for admin use
     dispatch: React.Dispatch<CourseAction>;
 }
 
 export const CourseContext = createContext<CourseContextType>({
     courses: [],
+    allCourses: [],
     dispatch: () => undefined,
 });
 
 const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useContext(AuthContext);
-    const [courses, dispatch] = useReducer(courseReducer, []);
+    const [allCourses, dispatch] = useReducer(courseReducer, [], () => {
+        // Initialize state from a single global key
+        return getInitialState<Course[]>('global_courses', []);
+    });
 
+    // Persist all courses to the single global key
     useEffect(() => {
-        if (user) {
-            const userCourses = getInitialState<Course[]>(`courses_${user.email}`, []);
-            dispatch({ type: 'SET_COURSES', payload: { courses: userCourses }});
-        } else {
-            dispatch({ type: 'SET_COURSES', payload: { courses: [] }});
-        }
-    }, [user]);
+        window.localStorage.setItem('global_courses', JSON.stringify(allCourses));
+    }, [allCourses]);
 
-    useEffect(() => {
-        if (user) {
-            window.localStorage.setItem(`courses_${user.email}`, JSON.stringify(courses));
-        }
-    }, [courses, user]);
+    // Filter courses for the currently logged-in user
+    const userCourses = useMemo(() => {
+        if (!user) return [];
+        return allCourses.filter(course => course.userEmail === user.email);
+    }, [allCourses, user]);
     
-    return <CourseContext.Provider value={{ courses, dispatch }}>{children}</CourseContext.Provider>;
+    return (
+        <CourseContext.Provider value={{ courses: userCourses, allCourses, dispatch }}>
+            {children}
+        </CourseContext.Provider>
+    );
 };
 
 // --- AUTH CONTEXT ---
@@ -233,19 +240,20 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             const userEmail = user.email;
             setUsers(prev => prev.filter(u => u.email !== userEmail));
             setUser(null);
-            window.localStorage.removeItem(`courses_${userEmail}`);
             navigate('/login');
         },
         getAllUsers: () => users,
         updateUserByEmail: (email, updates) => {
             if (!users.some(u => u.email === email)) return false;
             setUsers(prev => prev.map(u => u.email === email ? { ...u, ...updates } : u));
+            if (user?.email === email) {
+                setUser(prev => prev ? {...prev, ...updates} : null);
+            }
             return true;
         },
         deleteUserByEmail: (email) => {
             if (email === ADMIN_EMAIL) return false;
             setUsers(prev => prev.filter(u => u.email !== email));
-            window.localStorage.removeItem(`courses_${email}`);
             return true;
         },
     }), [user, users, isInitialized, navigate]);
@@ -352,6 +360,7 @@ const AppRoutes: React.FC = () => (
                     <Route path="/admin/users" element={<AdminUsersListPage />} />
                     <Route path="/admin/users/:userEmail" element={<AdminManageUserPage />} />
                     <Route path="/admin/users/:userEmail/profile" element={<AdminEditUserPage />} />
+                    <Route path="/admin/users/:userEmail/courses" element={<AdminUserCoursesPage />} />
                 </Route>
             </Route>
         </Route>

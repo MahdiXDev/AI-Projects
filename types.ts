@@ -12,6 +12,7 @@ export interface Course {
   description: string;
   topics: Topic[];
   createdAt: number;
+  userEmail: string; // Added to associate course with a user
 }
 
 export interface User {

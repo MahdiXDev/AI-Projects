@@ -13,7 +13,7 @@ const StatCard: React.FC<{ title: string; value: string | number }> = ({ title, 
 
 const ProfilePage: React.FC = () => {
     const { user, isAdmin, updateUser, changePassword, deleteCurrentUser } = useContext(AuthContext);
-    const { courses } = useContext(CourseContext);
+    const { courses, dispatch: dispatchCourseAction } = useContext(CourseContext);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
     
@@ -83,6 +83,14 @@ const ProfilePage: React.FC = () => {
         } else {
             showMessage('error', 'رمز عبور فعلی نامعتبر است.');
         }
+    };
+    
+    const handleDeleteAccount = () => {
+        if (user) {
+            dispatchCourseAction({ type: 'DELETE_COURSES_BY_USER', payload: { userEmail: user.email }});
+            deleteCurrentUser();
+        }
+        setIsDeleteModalOpen(false);
     };
 
     const inputClasses = "w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition";
@@ -186,7 +194,7 @@ const ProfilePage: React.FC = () => {
             <ConfirmModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={() => { deleteCurrentUser(); setIsDeleteModalOpen(false); }}
+                onConfirm={handleDeleteAccount}
                 title="تایید حذف حساب"
                 message="آیا کاملاً مطمئن هستید؟ تمام اطلاعات شما برای همیشه حذف خواهد شد."
                 confirmText="بله، حسابم را حذف کن"
