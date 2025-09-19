@@ -16,4 +16,5 @@ export interface Course {
 
 export interface User {
   email: string;
+  username: string;
 }

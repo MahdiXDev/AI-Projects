@@ -6,6 +6,7 @@ import type { User } from '../types';
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -27,7 +28,10 @@ const LoginPage: React.FC = () => {
             const user = storedUsers.find((u: any) => u.email === email && u.password === password);
 
             if (user) {
-                const userData: User = { email: user.email };
+                const userData: User = { 
+                    email: user.email,
+                    username: user.username || user.email.split('@')[0] // Fallback for old users
+                };
                 login(userData);
                 // Redirect them to the page they were trying to visit or to the homepage.
                 navigate(from, { replace: true });
@@ -69,12 +73,12 @@ const LoginPage: React.FC = () => {
                                 placeholder="آدرس ایمیل"
                             />
                         </div>
-                        <div>
+                        <div className="relative">
                             <label htmlFor="password"className="sr-only">رمز عبور</label>
                             <input
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 autoComplete="current-password"
                                 required
                                 value={password}
@@ -82,6 +86,14 @@ const LoginPage: React.FC = () => {
                                 className="appearance-none rounded-b-lg relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
                                 placeholder="رمز عبور"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 left-0 flex items-center px-3 text-gray-400 hover:text-white"
+                                aria-label={showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
+                            >
+                                {showPassword ? '👁️' : '👁️‍🗨️'}
+                            </button>
                         </div>
                     </div>
 

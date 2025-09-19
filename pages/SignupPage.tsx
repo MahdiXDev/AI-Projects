@@ -5,7 +5,9 @@ import type { User } from '../types';
 
 const SignupPage: React.FC = () => {
     const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -14,8 +16,8 @@ const SignupPage: React.FC = () => {
         e.preventDefault();
         setError('');
 
-        if (!email || !password) {
-            setError('لطفاً ایمیل و رمز عبور را وارد کنید.');
+        if (!email || !username || !password) {
+            setError('لطفاً تمام فیلدها را پر کنید.');
             return;
         }
         if (password.length < 6) {
@@ -32,11 +34,11 @@ const SignupPage: React.FC = () => {
                 return;
             }
 
-            const newUser = { email, password };
+            const newUser = { email, username, password };
             storedUsers.push(newUser);
             localStorage.setItem('users', JSON.stringify(storedUsers));
 
-            const userData: User = { email: newUser.email };
+            const userData: User = { email: newUser.email, username: newUser.username };
             login(userData);
             navigate('/');
 
@@ -71,23 +73,45 @@ const SignupPage: React.FC = () => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="appearance-none rounded-t-lg relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                className="appearance-none rounded-none rounded-t-lg relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
                                 placeholder="آدرس ایمیل"
                             />
                         </div>
                         <div>
+                            <label htmlFor="username" className="sr-only">نام کاربری</label>
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                required
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                placeholder="نام کاربری"
+                            />
+                        </div>
+                        <div className="relative">
                             <label htmlFor="password" className="sr-only">رمز عبور</label>
                             <input
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 autoComplete="new-password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="appearance-none rounded-b-lg relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
+                                className="appearance-none rounded-none rounded-b-lg relative block w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 sm:text-sm"
                                 placeholder="رمز عبور (حداقل ۶ کاراکتر)"
                             />
+                             <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 left-0 flex items-center px-3 text-gray-400 hover:text-white"
+                                aria-label={showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
+                            >
+                                {showPassword ? '👁️' : '👁️‍🗨️'}
+                            </button>
                         </div>
                     </div>
 

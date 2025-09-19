@@ -7,6 +7,7 @@ import CoursePage from './pages/CoursePage';
 import TopicDetailPage from './pages/TopicDetailPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import { ConfirmModal } from './components/Modal';
 
 // --- STATE MANAGEMENT (useReducer) ---
 
@@ -128,26 +129,43 @@ export const AuthContext = createContext<{
 // --- LAYOUT FOR AUTHENTICATED USERS ---
 const AuthenticatedLayout = () => {
     const { currentUser, logout } = useContext(AuthContext);
+    const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+
+    const handleLogoutConfirm = () => {
+        logout();
+        setIsLogoutConfirmOpen(false);
+    }
     
     return (
-        <div className="min-h-screen bg-gray-900 text-gray-100 selection:bg-sky-400 selection:text-sky-900">
-            <div className="absolute inset-0 -z-10 h-full w-full bg-gray-900 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-            
-            <header className="sticky top-0 z-40 bg-gray-900/70 backdrop-blur-lg border-b border-white/10">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-300">{currentUser?.email}</span>
+        <>
+            <div className="min-h-screen bg-gray-900 text-gray-100 selection:bg-sky-400 selection:text-sky-900">
+                <div className="absolute inset-0 -z-10 h-full w-full bg-gray-900 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+                
+                <header className="sticky top-0 z-40 bg-gray-900/70 backdrop-blur-lg border-b border-white/10">
+                    <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-300">{currentUser?.username || currentUser?.email}</span>
+                        </div>
+                        <button onClick={() => setIsLogoutConfirmOpen(true)} className="text-gray-400 hover:text-white transition-colors">
+                            <span className="text-sm font-medium">خروج</span>
+                        </button>
                     </div>
-                    <button onClick={logout} className="text-gray-400 hover:text-white transition-colors">
-                        <span className="text-sm font-medium">خروج</span>
-                    </button>
-                </div>
-            </header>
+                </header>
 
-            <main className="container mx-auto px-4 py-8">
-                <Outlet />
-            </main>
-        </div>
+                <main className="container mx-auto px-4 py-8">
+                    <Outlet />
+                </main>
+            </div>
+            <ConfirmModal
+                isOpen={isLogoutConfirmOpen}
+                onClose={() => setIsLogoutConfirmOpen(false)}
+                onConfirm={handleLogoutConfirm}
+                title="خروج از حساب"
+                message="آیا برای خروج از حساب کاربری خود اطمینان دارید؟"
+                confirmText="خروج"
+                cancelText="بازگشت"
+            />
+        </>
     )
 }
 

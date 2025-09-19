@@ -57,9 +57,19 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   title: string;
   message: string;
+  confirmText?: string;
+  cancelText?: string;
 }
 
-export const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, onClose, onConfirm, title, message }) => {
+export const ConfirmModal: React.FC<ConfirmModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message, 
+  confirmText = "تایید حذف", 
+  cancelText = "انصراف" 
+}) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div>
@@ -70,14 +80,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, onClose, onC
             type="button"
             className="rounded-lg bg-gray-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-300 hover:bg-gray-500"
           >
-            انصراف
+            {cancelText}
           </button>
           <button
             onClick={onConfirm}
             type="button"
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:bg-red-500"
           >
-            تایید حذف
+            {confirmText}
           </button>
         </div>
       </div>
