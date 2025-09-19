@@ -24,7 +24,7 @@ const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () =>
     const topicCount = course.topics.length;
 
     return (
-        <div className="group relative rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-md hover:shadow-xl">
+        <div className={`group relative rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-md hover:shadow-xl ${menuOpen ? 'z-10' : ''}`}>
             <div className="absolute top-4 right-4" ref={menuRef}>
                 <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors opacity-50 group-hover:opacity-100">
                     <DotsVerticalIcon className="w-5 h-5" />

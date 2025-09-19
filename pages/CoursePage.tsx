@@ -20,7 +20,7 @@ const TopicListItem: React.FC<{ topic: Topic, index: number, onEdit: () => void,
   }, []);
 
   return (
-    <div className="group flex items-center justify-between rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-4 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-md hover:shadow-lg">
+    <div className={`group relative flex items-center justify-between rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-4 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-md hover:shadow-lg ${menuOpen ? 'z-10' : ''}`}>
       <Link to={`topic/${topic.id}`} className="flex items-center gap-4 flex-grow min-w-0">
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-sky-600 dark:text-sky-400 font-bold shrink-0">{index + 1}</span>
         <span className="font-medium text-gray-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors truncate">{topic.title}</span>

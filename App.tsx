@@ -1,8 +1,9 @@
-import React, { createContext, useReducer, useEffect, useState, useContext } from 'react';
-import { Routes, Route, useLocation, useNavigate, Navigate, Outlet, Link, useParams } from 'react-router-dom';
-import type { Course, Topic, User } from './types';
-import { v4 as uuidv4 } from 'uuid';
 
+
+import React, { createContext, useReducer, useEffect, useState, useMemo, useContext, useRef } from 'react';
+import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+import type { User, Course, Topic } from './types';
 import HomePage from './pages/HomePage';
 import CoursePage from './pages/CoursePage';
 import TopicDetailPage from './pages/TopicDetailPage';
@@ -12,55 +13,28 @@ import ProfilePage from './pages/ProfilePage';
 import AdminUsersListPage from './pages/admin/AdminUsersListPage';
 import AdminManageUserPage from './pages/admin/AdminManageUserPage';
 import AdminEditUserPage from './pages/admin/AdminEditUserPage';
+import { SunIcon, MoonIcon, LogoutIcon } from './components/icons';
 import { ConfirmModal } from './components/Modal';
-import { SunIcon, MoonIcon } from './components/icons';
+import { AnimatePresence, motion } from 'framer-motion';
 
-// --- Types for Context ---
-// This interface includes the password for internal management but it's never exposed to the UI components directly.
-interface StoredUser extends User {
-  password?: string;
-}
+// --- INITIAL DATA & LOCAL STORAGE ---
 
-interface AuthContextType {
-  user: User | null;
-  isAdmin: boolean;
-  login: (credentials: Pick<StoredUser, 'email' | 'password'>) => boolean;
-  logout: () => void;
-  updateUser: (updatedUserData: Partial<User>) => void;
-  changePassword: (oldPassword: string, newPassword: string) => boolean;
-  deleteCurrentUser: () => void;
-  getAllUsers: () => StoredUser[];
-  addUser: (newUser: StoredUser) => boolean;
-  updateUserByEmail: (email: string, updates: Partial<StoredUser>) => boolean;
-  deleteUserByEmail: (email: string) => void;
-}
+const ADMIN_EMAIL = 'bagherimahdi1300@gmail.com';
 
-interface CourseContextType {
-  courses: Course[];
-  dispatch: React.Dispatch<any>;
-  isManaged: boolean; // Flag to indicate if we are in admin management mode
-}
+const getInitialState = <T,>(key: string, defaultValue: T): T => {
+  try {
+    const item = window.localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.warn(`Error reading localStorage key “${key}”:`, error);
+    return defaultValue;
+  }
+};
 
-interface ThemeContextType {
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
-}
+// --- COURSE CONTEXT & REDUCER ---
 
-// --- Context Creation ---
-export const AuthContext = createContext<AuthContextType>(null!);
-export const CourseContext = createContext<CourseContextType>(null!);
-export const ThemeContext = createContext<ThemeContextType>(null!);
-
-// --- LocalStorage Utilities ---
-const getUsersFromStorage = (): StoredUser[] => JSON.parse(localStorage.getItem('users') || '[]');
-const saveUsersToStorage = (users: StoredUser[]) => localStorage.setItem('users', JSON.stringify(users));
-const getCoursesFromStorage = (email: string): Course[] => JSON.parse(localStorage.getItem(`courses_${email}`) || '[]');
-const saveCoursesToStorage = (email: string, courses: Course[]) => localStorage.setItem(`courses_${email}`, JSON.stringify(courses));
-
-
-// --- Course Reducer ---
 type CourseAction =
-  | { type: 'SET_COURSES'; payload: Course[] }
+  | { type: 'SET_COURSES'; payload: { courses: Course[] } }
   | { type: 'ADD_COURSE'; payload: { name: string; description: string } }
   | { type: 'EDIT_COURSE'; payload: { courseId: string; name: string; description: string } }
   | { type: 'DELETE_COURSE'; payload: { courseId: string } }
@@ -72,66 +46,260 @@ type CourseAction =
 const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   switch (action.type) {
     case 'SET_COURSES':
-      return action.payload;
+      return action.payload.courses;
     case 'ADD_COURSE': {
-      const newCourse: Course = { id: uuidv4(), name: action.payload.name, description: action.payload.description, topics: [], createdAt: Date.now() };
+      const newCourse: Course = {
+        id: uuidv4(),
+        name: action.payload.name,
+        description: action.payload.description,
+        topics: [],
+        createdAt: Date.now(),
+      };
       return [...state, newCourse];
     }
     case 'EDIT_COURSE':
-      return state.map(c => c.id === action.payload.courseId ? { ...c, name: action.payload.name, description: action.payload.description } : c);
+      return state.map(course =>
+        course.id === action.payload.courseId
+          ? { ...course, name: action.payload.name, description: action.payload.description }
+          : course
+      );
     case 'DELETE_COURSE':
-      return state.filter(c => c.id !== action.payload.courseId);
+      return state.filter(course => course.id !== action.payload.courseId);
     case 'ADD_TOPIC': {
-      const newTopic: Topic = { id: uuidv4(), title: action.payload.title, notes: '', imageUrls: [], createdAt: Date.now() };
-      return state.map(c => c.id === action.payload.courseId ? { ...c, topics: [...c.topics, newTopic] } : c);
+      const newTopic: Topic = {
+        id: uuidv4(),
+        title: action.payload.title,
+        notes: '',
+        imageUrls: [],
+        createdAt: Date.now(),
+      };
+      return state.map(course =>
+        course.id === action.payload.courseId
+          ? { ...course, topics: [...course.topics, newTopic] }
+          : course
+      );
     }
     case 'EDIT_TOPIC':
-      return state.map(c => c.id === action.payload.courseId ? { ...c, topics: c.topics.map(t => t.id === action.payload.topicId ? { ...t, title: action.payload.title } : t) } : c);
+      return state.map(course =>
+        course.id === action.payload.courseId
+          ? {
+              ...course,
+              topics: course.topics.map(topic =>
+                topic.id === action.payload.topicId
+                  ? { ...topic, title: action.payload.title }
+                  : topic
+              ),
+            }
+          : course
+      );
     case 'DELETE_TOPIC':
-      return state.map(c => c.id === action.payload.courseId ? { ...c, topics: c.topics.filter(t => t.id !== action.payload.topicId) } : c);
+      return state.map(course =>
+        course.id === action.payload.courseId
+          ? { ...course, topics: course.topics.filter(topic => topic.id !== action.payload.topicId) }
+          : course
+      );
     case 'UPDATE_TOPIC_DETAILS':
-      return state.map(c => c.id === action.payload.courseId ? { ...c, topics: c.topics.map(t => t.id === action.payload.topicId ? { ...t, notes: action.payload.notes, imageUrls: action.payload.imageUrls } : t) } : c);
+      return state.map(course =>
+        course.id === action.payload.courseId
+          ? {
+              ...course,
+              topics: course.topics.map(topic =>
+                topic.id === action.payload.topicId
+                  ? { ...topic, notes: action.payload.notes, imageUrls: action.payload.imageUrls }
+                  : topic
+              ),
+            }
+          : course
+      );
     default:
       return state;
   }
 };
 
-// --- Layout Component ---
+interface CourseContextType {
+    courses: Course[];
+    dispatch: React.Dispatch<CourseAction>;
+}
+
+export const CourseContext = createContext<CourseContextType>({
+    courses: [],
+    dispatch: () => undefined,
+});
+
+const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user } = useContext(AuthContext);
+    const [courses, dispatch] = useReducer(courseReducer, []);
+
+    useEffect(() => {
+        if (user) {
+            const userCourses = getInitialState<Course[]>(`courses_${user.email}`, []);
+            dispatch({ type: 'SET_COURSES', payload: { courses: userCourses }});
+        } else {
+            dispatch({ type: 'SET_COURSES', payload: { courses: [] }});
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            window.localStorage.setItem(`courses_${user.email}`, JSON.stringify(courses));
+        }
+    }, [courses, user]);
+    
+    return <CourseContext.Provider value={{ courses, dispatch }}>{children}</CourseContext.Provider>;
+};
+
+// --- AUTH CONTEXT ---
+interface StoredUser extends User {
+    password?: string;
+}
+
+interface AuthContextType {
+    user: User | null;
+    isAdmin: boolean;
+    isInitialized: boolean;
+    login: (credentials: { email: string; password?: string }) => boolean;
+    logout: () => void;
+    addUser: (user: StoredUser) => boolean;
+    updateUser: (updates: Partial<User>) => void;
+    changePassword: (oldPass: string, newPass: string) => boolean;
+    deleteCurrentUser: () => void;
+    getAllUsers: () => StoredUser[];
+    updateUserByEmail: (email: string, updates: Partial<StoredUser>) => boolean;
+    deleteUserByEmail: (email: string) => boolean;
+}
+
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [users, setUsers] = useState<StoredUser[]>(() => getInitialState<StoredUser[]>('users', [{
+        username: 'Admin',
+        email: ADMIN_EMAIL,
+        password: '1382_Mahdi_1382',
+        createdAt: Date.now(),
+        profilePicture: null,
+    }]));
+    const [user, setUser] = useState<User | null>(() => getInitialState<User | null>('currentUser', null));
+    const [isInitialized, setIsInitialized] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        window.localStorage.setItem('users', JSON.stringify(users));
+    }, [users]);
+    
+    useEffect(() => {
+        window.localStorage.setItem('currentUser', JSON.stringify(user));
+        if (!isInitialized) setIsInitialized(true);
+    }, [user, isInitialized]);
+    
+    const authContextValue = useMemo(() => ({
+        user,
+        isAdmin: user?.email === ADMIN_EMAIL,
+        isInitialized,
+        login: ({ email, password }) => {
+            const foundUser = users.find(u => u.email === email && u.password === password);
+            if (foundUser) {
+                const { password, ...userToStore } = foundUser;
+                setUser(userToStore);
+                return true;
+            }
+            return false;
+        },
+        logout: () => {
+            setUser(null);
+            navigate('/login');
+        },
+        addUser: (newUser) => {
+            if (users.some(u => u.email === newUser.email)) return false;
+            setUsers(prev => [...prev, newUser]);
+            return true;
+        },
+        updateUser: (updates) => {
+            if (!user) return;
+            const updatedUser = { ...user, ...updates };
+            setUser(updatedUser);
+            setUsers(prev => prev.map(u => u.email === user.email ? { ...u, ...updatedUser } : u));
+        },
+        changePassword: (oldPass, newPass) => {
+            if (!user) return false;
+            const userWithPass = users.find(u => u.email === user.email);
+            if (userWithPass && userWithPass.password === oldPass) {
+                setUsers(prev => prev.map(u => u.email === user.email ? { ...u, password: newPass } : u));
+                return true;
+            }
+            return false;
+        },
+        deleteCurrentUser: () => {
+            if (!user || user.email === ADMIN_EMAIL) return;
+            const userEmail = user.email;
+            setUsers(prev => prev.filter(u => u.email !== userEmail));
+            setUser(null);
+            window.localStorage.removeItem(`courses_${userEmail}`);
+            navigate('/login');
+        },
+        getAllUsers: () => users,
+        updateUserByEmail: (email, updates) => {
+            if (!users.some(u => u.email === email)) return false;
+            setUsers(prev => prev.map(u => u.email === email ? { ...u, ...updates } : u));
+            return true;
+        },
+        deleteUserByEmail: (email) => {
+            if (email === ADMIN_EMAIL) return false;
+            setUsers(prev => prev.filter(u => u.email !== email));
+            window.localStorage.removeItem(`courses_${email}`);
+            return true;
+        },
+    }), [user, users, isInitialized, navigate]);
+
+    return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
+};
+
+// --- THEME ---
+const useTheme = () => {
+    const [theme, setTheme] = useState(() => getInitialState<'light' | 'dark'>('theme', 'dark'));
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.remove(theme === 'light' ? 'dark' : 'light');
+        root.classList.add(theme);
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+
+    return { theme, toggleTheme };
+};
+
+
+// --- LAYOUT ---
 const Layout: React.FC = () => {
     const { user, logout } = useContext(AuthContext);
-    const { theme, toggleTheme } = useContext(ThemeContext);
+    const { theme, toggleTheme } = useTheme();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-    return (
-        <div className="min-h-screen">
-            <div className="absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-900 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-            <header className="sticky top-0 z-40 w-full backdrop-blur-lg border-b border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                    {/* This group will be on the right due to RTL dir */}
-                    <nav>
-                        {user ? (
-                            <Link to="/profile" className="flex items-center gap-3">
-                                <img src={user.profilePicture || `https://api.dicebear.com/8.x/initials/svg?seed=${user.username}`} alt={user.username} className="h-9 w-9 rounded-full object-cover"/>
-                                <span className="text-sm font-medium hidden sm:inline">{user.username}</span>
-                            </Link>
-                        ) : (
-                            <div /> // Placeholder to maintain layout
-                        )}
-                    </nav>
+    if (!user) return <Navigate to="/login" />;
 
-                    {/* This group will be on the left due to RTL dir */}
-                    <div className="flex items-center gap-4">
-                        <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
-                            {theme === 'dark' ? <SunIcon className="w-6 h-6 text-yellow-400" /> : <MoonIcon className="w-6 h-6 text-slate-700" />}
-                        </button>
-                        {user ? (
-                            <button onClick={() => setIsLogoutModalOpen(true)} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-sky-500 dark:hover:text-sky-400">خروج</button>
-                        ) : (
-                            <>
-                                <Link to="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-sky-500 dark:hover:text-sky-400">ورود</Link>
-                                <Link to="/signup" className="text-sm font-medium rounded-lg px-3 py-1.5 bg-sky-500 text-white hover:bg-sky-400 transition-colors">ثبت‌نام</Link>
-                            </>
-                        )}
+    return (
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
+             <div className="absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-900 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+            <header className="sticky top-0 z-40 bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg border-b border-black/10 dark:border-white/10">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        {/* Right Side: User Profile */}
+                         <Link to="/profile" className="flex items-center gap-3 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                            <img src={user.profilePicture || `https://api.dicebear.com/8.x/initials/svg?seed=${user.username}`} alt={user.username} className="w-9 h-9 rounded-full object-cover" />
+                            <span className="font-semibold">{user.username}</span>
+                        </Link>
+
+                        {/* Left Side: Controls */}
+                        <div className="flex items-center gap-2">
+                            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10">
+                                {theme === 'light' ? <MoonIcon className="w-6 h-6" /> : <SunIcon className="w-6 h-6" />}
+                            </button>
+                            <button onClick={() => setIsLogoutModalOpen(true)} className="flex items-center gap-2 p-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                                <LogoutIcon className="w-5 h-5" />
+                                <span>خروج</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -144,7 +312,7 @@ const Layout: React.FC = () => {
                 onConfirm={logout}
                 title="خروج از حساب"
                 message="آیا برای خروج از حساب خود اطمینان دارید؟"
-                confirmText="خروج"
+                confirmText="خروج از حساب"
                 cancelText="انصراف"
                 isDestructive={true}
             />
@@ -152,224 +320,54 @@ const Layout: React.FC = () => {
     );
 };
 
-// --- Protected Route Components ---
-const ProtectedRoute: React.FC = () => {
-    const { user } = useContext(AuthContext);
-    return user ? <Outlet /> : <Navigate to="/login" replace />;
+// --- ROUTE PROTECTION ---
+const PrivateRoute: React.FC = () => {
+    const { user, isInitialized } = useContext(AuthContext);
+    const location = useLocation();
+
+    if (!isInitialized) return null;
+
+    return user ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
 };
 
 const AdminRoute: React.FC = () => {
-    const { isAdmin } = useContext(AuthContext);
-    return isAdmin ? <Outlet /> : <Navigate to="/" replace />;
+    const { user, isAdmin, isInitialized } = useContext(AuthContext);
+
+    if (!isInitialized) return null;
+
+    return user && isAdmin ? <Outlet /> : <Navigate to="/" replace />;
 };
 
-// --- Admin Management Layout ---
-const AdminManagementLayout: React.FC = () => {
-    const { userEmail } = useParams<{ userEmail: string }>();
-    const [courses, dispatch] = useReducer(courseReducer, []);
-    const [managedUser, setManagedUser] = useState<User | null>(null);
-
-    useEffect(() => {
-        if(userEmail) {
-            const users = getUsersFromStorage();
-            const foundUser = users.find(u => u.email === userEmail);
-            if (foundUser) {
-                const { password, ...userData } = foundUser;
-                setManagedUser(userData);
-                dispatch({ type: 'SET_COURSES', payload: getCoursesFromStorage(userEmail) });
-            }
-        }
-    }, [userEmail]);
-
-    useEffect(() => {
-        if(userEmail && managedUser) {
-            saveCoursesToStorage(userEmail, courses);
-        }
-    }, [courses, userEmail, managedUser]);
-
-    if (!managedUser) return <div className="text-center">Loading user data...</div>;
-
-    return (
-        <CourseContext.Provider value={{ courses, dispatch, isManaged: true }}>
-            <Outlet context={{ managedUser }} />
-        </CourseContext.Provider>
-    );
-}
-
-// --- Main App Component ---
-const App: React.FC = () => {
-    const [user, setUser] = useState<User | null>(() => {
-        const savedUser = localStorage.getItem('currentUser');
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
-    const [courses, dispatch] = useReducer(courseReducer, []);
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'dark');
-    const navigate = useNavigate();
-    const ADMIN_EMAIL = 'bagherimahdi1300@gmail.com';
-
-    // --- Admin Seeding ---
-    useEffect(() => {
-      const users = getUsersFromStorage();
-      const adminExists = users.some(u => u.email === ADMIN_EMAIL);
-      if (!adminExists) {
-        users.push({
-          email: ADMIN_EMAIL,
-          password: '1382_Mahdi_1382',
-          username: 'Admin',
-          createdAt: Date.now(),
-          profilePicture: null
-        });
-        saveUsersToStorage(users);
-      }
-    }, []);
-
-    // --- Theme Management ---
-    useEffect(() => {
-        const root = window.document.documentElement;
-        root.classList.remove(theme === 'dark' ? 'light' : 'dark');
-        root.classList.add(theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
-    
-    const toggleTheme = () => setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
-
-    // --- Course Data Management ---
-    useEffect(() => {
-        if (user) {
-            dispatch({ type: 'SET_COURSES', payload: getCoursesFromStorage(user.email) });
-        } else {
-            dispatch({ type: 'SET_COURSES', payload: [] });
-        }
-    }, [user]);
-
-    useEffect(() => {
-        if (user) {
-            saveCoursesToStorage(user.email, courses);
-        }
-    }, [courses, user]);
-    
-    // --- Auth & User Management Logic ---
-    const authContextValue: AuthContextType = {
-        user,
-        isAdmin: user?.email === ADMIN_EMAIL,
-        login: (credentials) => {
-            const users = getUsersFromStorage();
-            const foundUser = users.find(u => u.email === credentials.email && u.password === credentials.password);
-            if (foundUser) {
-                const { password, ...userData } = foundUser;
-                setUser(userData);
-                localStorage.setItem('currentUser', JSON.stringify(userData));
-                return true;
-            }
-            return false;
-        },
-        logout: () => {
-            setUser(null);
-            localStorage.removeItem('currentUser');
-            navigate('/login');
-        },
-        updateUser: (updatedUserData) => {
-            if (user) {
-                const newUser = { ...user, ...updatedUserData };
-                setUser(newUser);
-                localStorage.setItem('currentUser', JSON.stringify(newUser));
-                authContextValue.updateUserByEmail(user.email, updatedUserData);
-            }
-        },
-        changePassword: (oldPassword, newPassword) => {
-            if(!user) return false;
-            const users = getUsersFromStorage();
-            const userIndex = users.findIndex(u => u.email === user.email);
-            if (userIndex > -1 && users[userIndex].password === oldPassword) {
-                users[userIndex].password = newPassword;
-                saveUsersToStorage(users);
-                return true;
-            }
-            return false;
-        },
-        deleteCurrentUser: () => {
-            if (user && user.email !== ADMIN_EMAIL) {
-                authContextValue.deleteUserByEmail(user.email);
-                authContextValue.logout();
-            }
-        },
-        getAllUsers: () => getUsersFromStorage(),
-        addUser: (newUser) => {
-            const users = getUsersFromStorage();
-            if (users.some(u => u.email === newUser.email)) return false;
-            users.push(newUser);
-            saveUsersToStorage(users);
-            return true;
-        },
-        updateUserByEmail: (email, updates) => {
-            const users = getUsersFromStorage();
-            const userIndex = users.findIndex(u => u.email === email);
-            if (userIndex > -1) {
-                users[userIndex] = { ...users[userIndex], ...updates };
-                saveUsersToStorage(users);
-                if (user?.email === email) { // update current user session if they are being edited
-                     const newUser = { ...user, ...updates };
-                     setUser(newUser);
-                     localStorage.setItem('currentUser', JSON.stringify(newUser));
-                }
-                return true;
-            }
-            return false;
-        },
-        deleteUserByEmail: (email) => {
-            if (email === ADMIN_EMAIL) return; // Safeguard
-            const users = getUsersFromStorage();
-            saveUsersToStorage(users.filter(u => u.email !== email));
-            localStorage.removeItem(`courses_${email}`);
-        }
-    };
-    
-
-    return (
-        <AuthContext.Provider value={authContextValue}>
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route element={<Layout />}>
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/" element={
-                            <CourseContext.Provider value={{ courses, dispatch, isManaged: false }}>
-                                <HomePage />
-                            </CourseContext.Provider>
-                        } />
-                        <Route path="/course/:courseId" element={
-                            <CourseContext.Provider value={{ courses, dispatch, isManaged: false }}>
-                                <CoursePage />
-                            </CourseContext.Provider>
-                        } />
-                        <Route path="/course/:courseId/topic/:topicId" element={
-                             <CourseContext.Provider value={{ courses, dispatch, isManaged: false }}>
-                                <TopicDetailPage />
-                            </CourseContext.Provider>
-                        } />
-                        <Route path="/profile" element={
-                            <CourseContext.Provider value={{ courses, dispatch, isManaged: false }}>
-                                <ProfilePage />
-                            </CourseContext.Provider>
-                        } />
-
-                        <Route path="/admin" element={<AdminRoute />}>
-                            <Route path="users" element={<AdminUsersListPage />} />
-                            <Route path="users/:userEmail" element={<AdminManageUserPage />} />
-                            <Route path="users/:userEmail/profile" element={<AdminEditUserPage />} />
-                            <Route path="users/:userEmail/courses" element={<AdminManagementLayout />}>
-                               <Route index element={<HomePage />} />
-                               <Route path="course/:courseId" element={<CoursePage />} />
-                               <Route path="course/:courseId/topic/:topicId" element={<TopicDetailPage />} />
-                            </Route>
-                        </Route>
-                    </Route>
+const AppRoutes: React.FC = () => (
+    <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route element={<Layout />}>
+            <Route element={<PrivateRoute />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/course/:courseId" element={<CoursePage />} />
+                <Route path="/course/:courseId/topic/:topicId" element={<TopicDetailPage />} />
+                <Route element={<AdminRoute />}>
+                    <Route path="/admin/users" element={<AdminUsersListPage />} />
+                    <Route path="/admin/users/:userEmail" element={<AdminManageUserPage />} />
+                    <Route path="/admin/users/:userEmail/profile" element={<AdminEditUserPage />} />
                 </Route>
-            </Routes>
-        </ThemeContext.Provider>
-        </AuthContext.Provider>
-    );
-};
+            </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+);
+
+
+function App() {
+  return (
+    <AuthProvider>
+        <CourseProvider>
+            <AppRoutes />
+        </CourseProvider>
+    </AuthProvider>
+  );
+}
 
 export default App;

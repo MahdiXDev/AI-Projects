@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { User } from '../../types';
 import { AuthContext } from '../../App';
 import Modal from '../../components/Modal';
-import { PlusIcon } from '../../components/icons';
+import { PlusIcon, ArrowRightIcon } from '../../components/icons';
 
 interface StoredUser extends User {
     password?: string;
@@ -59,6 +59,10 @@ const AdminUsersListPage: React.FC = () => {
 
     return (
         <div>
+            <Link to="/" className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
+                <ArrowRightIcon className="w-5 h-5 transform scale-x-[-1]" />
+                <span>بازگشت به دوره‌های من</span>
+            </Link>
             <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-bold tracking-tight">مدیریت کاربران</h1>
