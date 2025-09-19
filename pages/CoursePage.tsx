@@ -69,8 +69,8 @@ const CoursePage: React.FC = () => {
         topic.title.toLocaleLowerCase('fa').includes(lowercasedQuery)
     );
 
-    // Default sort by newest first
-    return [...filteredTopics].sort((a, b) => b.createdAt - a.createdAt);
+    // Sort by oldest first
+    return [...filteredTopics].sort((a, b) => a.createdAt - b.createdAt);
   }, [course, searchQuery]);
 
   if (!course) {
