@@ -1,3 +1,4 @@
+
 import React, { createContext, useReducer, useEffect, useState, useMemo, useContext } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,13 +24,16 @@ type CourseAction =
   | { type: 'EDIT_TOPIC'; payload: { courseId: string; topicId: string; title: string } }
   | { type: 'DELETE_TOPIC'; payload: { courseId: string; topicId: string } }
   | { type: 'UPDATE_TOPIC_DETAILS'; payload: { courseId: string; topicId: string; notes: string; imageUrls: string[] } }
-  | { type: 'DELETE_COURSES_BY_USER'; payload: { userEmail: string } };
+  | { type: 'DELETE_COURSES_BY_USER'; payload: { userEmail: string } }
+  | { type: 'REORDER_COURSES'; payload: { userEmail: string; courses: Course[] } }
+  | { type: 'REORDER_TOPICS'; payload: { courseId: string; topics: Topic[] } };
 
 const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   switch (action.type) {
     case 'SET_COURSES':
       return action.payload;
     case 'ADD_COURSE': {
+      const userCourses = state.filter(c => c.userEmail === action.payload.userEmail);
       const newCourse: Course = {
         id: uuidv4(),
         name: action.payload.name,
@@ -37,6 +41,7 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
         topics: [],
         createdAt: Date.now(),
         userEmail: action.payload.userEmail,
+        sortOrder: (userCourses.reduce((max, c) => Math.max(c.sortOrder || 0, max), 0)) + 1,
       };
       return [...state, newCourse];
     }
@@ -49,18 +54,20 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
     case 'DELETE_COURSE':
       return state.filter(course => course.id !== action.payload.courseId);
     case 'ADD_TOPIC': {
-      const newTopic: Topic = {
-        id: uuidv4(),
-        title: action.payload.title,
-        notes: '',
-        imageUrls: [],
-        createdAt: Date.now(),
-      };
-      return state.map(course =>
-        course.id === action.payload.courseId
-          ? { ...course, topics: [...course.topics, newTopic] }
-          : course
-      );
+      return state.map(course => {
+        if (course.id === action.payload.courseId) {
+            const newTopic: Topic = {
+                id: uuidv4(),
+                title: action.payload.title,
+                notes: '',
+                imageUrls: [],
+                createdAt: Date.now(),
+                sortOrder: (course.topics.reduce((max, t) => Math.max(t.sortOrder || 0, max), 0)) + 1,
+            };
+            return { ...course, topics: [...course.topics, newTopic] };
+        }
+        return course;
+      });
     }
     case 'EDIT_TOPIC':
       return state.map(course =>
@@ -96,6 +103,27 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
       );
     case 'DELETE_COURSES_BY_USER':
         return state.filter(course => course.userEmail !== action.payload.userEmail);
+    case 'REORDER_COURSES': {
+        const { userEmail, courses: reorderedUserCourses } = action.payload;
+        const otherUsersCourses = state.filter(c => c.userEmail !== userEmail);
+        const updatedUserCourses = reorderedUserCourses.map((course, index) => ({
+            ...course,
+            sortOrder: index + 1,
+        }));
+        return [...otherUsersCourses, ...updatedUserCourses];
+    }
+    case 'REORDER_TOPICS': {
+        return state.map(course => {
+            if (course.id === action.payload.courseId) {
+                const reorderedTopics = action.payload.topics.map((topic, index) => ({
+                    ...topic,
+                    sortOrder: index + 1,
+                }));
+                return { ...course, topics: reorderedTopics };
+            }
+            return course;
+        });
+    }
     default:
       return state;
   }

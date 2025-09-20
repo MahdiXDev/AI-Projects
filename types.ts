@@ -1,9 +1,11 @@
+
 export interface Topic {
   id: string;
   title: string;
   notes: string;
   imageUrls?: string[];
   createdAt: number;
+  sortOrder: number;
 }
 
 export interface Course {
@@ -13,6 +15,7 @@ export interface Course {
   topics: Topic[];
   createdAt: number;
   userEmail: string; // Added to associate course with a user
+  sortOrder: number;
 }
 
 export interface User {
