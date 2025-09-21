@@ -151,15 +151,42 @@ const ProfilePage: React.FC = () => {
                 users: users,
                 global_courses: courses,
             };
-            const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(dataToExport, null, 2))}`;
+            const jsonString = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const fileName = 'course_manager_backup.json';
+
+            // Use Web Share API if available (for mobile/PWA)
+            if (navigator.share && navigator.canShare) {
+                const file = new File([blob], fileName, { type: 'application/json' });
+                 if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'پشتیبان داده‌های برنامه',
+                        text: 'فایل پشتیبان داده‌های مدیریت سرفصل دروس.',
+                    });
+                    showMessage('success', 'پنجره اشتراک‌گذاری باز شد.');
+                    return;
+                }
+            }
+            
+            // Fallback for desktop browsers
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = jsonString;
-            link.download = 'course_manager_backup.json';
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link); // Required for Firefox
             link.click();
-            showMessage('success', 'داده‌ها با موفقیت خروجی گرفته شد.');
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showMessage('success', 'دانلود فایل پشتیبان شروع شد.');
+
         } catch (error) {
-            showMessage('error', 'خطا در خروجی گرفتن داده‌ها.');
-            console.error("Export error:", error);
+            if (error instanceof Error && error.name === 'AbortError') {
+                console.log('User cancelled the share operation.');
+            } else {
+                showMessage('error', 'خطا در خروجی گرفتن داده‌ها.');
+                console.error("Export error:", error);
+            }
         }
     };
 
