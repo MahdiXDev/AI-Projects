@@ -36,23 +36,23 @@ export const AppearanceContext = createContext<AppearanceContextType>({
 
 const patterns: Record<BackgroundPattern, { light: string; dark: string; }> = {
     grid: {
-        light: 'bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:4rem_4rem]',
+        light: 'bg-[size:4rem_4rem] bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)]',
         dark: 'dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)]'
     },
     dots: {
-        light: 'bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:1rem_1rem]',
+        light: 'bg-[size:1rem_1rem] bg-[radial-gradient(#d1d5db_1px,transparent_1px)]',
         dark: 'dark:bg-[radial-gradient(#374151_1px,transparent_1px)]'
     },
     waves: {
-        light: `bg-size-[80px_40px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' width='80' height='40'%3e%3cpath d='M0 20 C20 0, 60 0, 80 20' stroke='%23d1d5db' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`,
-        dark: `dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' width='80' height='40'%3e%3cpath d='M0 20 C20 0, 60 0, 80 20' stroke='%23374151' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`
+        light: `bg-[size:80px_40px] bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MCA0MCcgd2lkdGg9JzgwJyBoZWlnaHQ9JzQwJz48cGF0aCBkPSdNMCAyMCBDMjAgMCwgNjAgMCwgODAgMjAnIHN0cm9rZT0nI2QxZDVkYicgZmlsbD0nbm9uZScgc3Ryb2tlLXdpZHRoPScyJy8+PC9zdmc+)]`,
+        dark: `dark:bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MCA0MCcgd2lkdGg9JzgwJyBoZWlnaHQ9JzQwJz48cGF0aCBkPSdNMCAyMCBDMjAgMCwgNjAgMCwgODAgMjAnIHN0cm9rZT0nIzM3NDE1MScgZmlsbD0nbm9uZScgc3Ryb2tlLXdpZHRoPScyJy8+PC9zdmc+)]`
     },
     triangles: {
-        light: `bg-size-[50px_50px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%23e5e7eb'/%3e%3c/svg%3e")]`,
-        dark: `dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%231f2937'/%3e%3c/svg%3e")]`
+        light: `bg-[size:50px_50px] bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MCcgaGVpZ2h0PSc1MCcgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxwYXRoIGQ9J00wIDEwMCBMNTAgMCBMMTAwIDEwMCBaJyBmaWxsPScjZTVlN2ViJy8+PC9zdmc+)]`,
+        dark: `dark:bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MCcgaGVpZ2h0PSc1MCcgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxwYXRoIGQ9J00wIDEwMCBMNTAgMCBMMTAwIDEwMCBaJyBmaWxsPScjMWYyOTM3Jy8+PC9zdmc+)]`
     },
     checkerboard: {
-        light: 'bg-size-[20px_20px] bg-[image:linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)]',
+        light: 'bg-[size:20px_20px] bg-[image:linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)]',
         dark: 'dark:bg-[image:linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]'
     },
     none: { light: '', dark: '' }
