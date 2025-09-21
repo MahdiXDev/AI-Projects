@@ -1,4 +1,3 @@
-
 import React, { useContext, useState, useRef, useMemo } from 'react';
 import { AuthContext, CourseContext } from '../App';
 import { Link } from 'react-router-dom';
@@ -59,12 +58,11 @@ const ProfilePage: React.FC = () => {
     ];
 
     const backgroundPatternOptions: { name: BackgroundPattern, label: string, previewClass: string }[] = [
-        { name: 'grid', label: 'شبکه‌ای', previewClass: 'bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:2rem_2rem]' },
-        { name: 'dots', label: 'نقطه‌چین', previewClass: 'bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:0.75rem_0.75rem]' },
-        { name: 'plus', label: 'بعلاوه', previewClass: 'bg-[linear-gradient(#d1d5db_1px,transparent_1px),linear-gradient(to_right,#d1d5db_1px,transparent_1px)] dark:bg-[linear-gradient(#374151_1px,transparent_1px),linear-gradient(to_right,#374151_1px,transparent_1px)] bg-[size:0.75rem_0.75rem]' },
+        { name: 'grid', label: 'شبکه‌ای', previewClass: 'bg-[size:2rem_2rem] bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)]' },
+        { name: 'dots', label: 'نقطه‌چین', previewClass: '[background-size:0.75rem_0.75rem] bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)]' },
         { name: 'waves', label: 'موج', previewClass: `bg-size-[40px_20px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20' width='40' height='20'%3e%3cpath d='M0 10 C10 0, 30 0, 40 10' stroke='%23d1d5db' fill='none' stroke-width='2'/%3e%3c/svg%3e")] dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20' width='40' height='20'%3e%3cpath d='M0 10 C10 0, 30 0, 40 10' stroke='%23374151' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`},
         { name: 'triangles', label: 'مثلث', previewClass: `bg-size-[30px_30px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%23e5e7eb'/%3e%3c/svg%3e")] dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%231f2937'/%3e%3c/svg%3e")]` },
-        { name: 'checkerboard', label: 'شطرنجی', previewClass: 'bg-size-[20px_20px] bg-gray-200 dark:bg-gray-800 bg-[image:linear-gradient(45deg,#fff_25%,transparent_25%),linear-gradient(-45deg,#fff_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#fff_75%),linear-gradient(-45deg,transparent_75%,#fff_75%)] dark:bg-[image:linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]' },
+        { name: 'checkerboard', label: 'شطرنجی', previewClass: 'bg-size-[20px_20px] bg-[image:linear-gradient(45deg,#d1d5db_25%,transparent_25%),linear-gradient(-45deg,#d1d5db_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#d1d5db_75%),linear-gradient(-45deg,transparent_75%,#d1d5db_75%)] dark:bg-[image:linear-gradient(45deg,#374151_25%,transparent_25%),linear-gradient(-45deg,#374151_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#374151_75%),linear-gradient(-45deg,transparent_75%,#374151_75%)]' },
         { name: 'none', label: 'ساده', previewClass: '' },
     ];
 
@@ -257,7 +255,7 @@ const ProfilePage: React.FC = () => {
                         {/* Background Pattern */}
                          <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">طرح پس‌زمینه</label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {backgroundPatternOptions.map(pattern => (
                                     <button 
                                       key={pattern.name} 

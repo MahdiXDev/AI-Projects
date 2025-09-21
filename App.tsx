@@ -1,4 +1,3 @@
-
 import React, { createContext, useReducer, useEffect, useState, useMemo, useContext } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -373,7 +372,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const Background = () => {
     const { backgroundClass } = useAppearance();
     return (
-        <div className={`absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-950 ${backgroundClass}`}></div>
+        <div className={`fixed inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-950 ${backgroundClass}`}></div>
     );
 };
 

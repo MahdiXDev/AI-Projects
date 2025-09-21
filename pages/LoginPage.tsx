@@ -1,4 +1,3 @@
-
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../App';
@@ -37,7 +36,7 @@ const LoginPage: React.FC = () => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950">
-            <div className={`absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-950 ${backgroundClass}`}></div>
+            <div className={`fixed inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-950 ${backgroundClass}`}></div>
             <div className="w-full max-w-md p-8 space-y-8 rounded-xl border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-800/50 shadow-2xl shadow-black/40 backdrop-blur-xl">
                 <div>
                     <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 dark:text-white">ورود به حساب کاربری</h2>

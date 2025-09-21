@@ -1,10 +1,9 @@
-
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { db } from '../utils/db';
 
 export type Theme = 'light' | 'dark';
 export type AccentColor = 'sky' | 'emerald' | 'rose' | 'violet' | 'amber' | 'teal' | 'orange' | 'indigo';
-export type BackgroundPattern = 'grid' | 'dots' | 'plus' | 'waves' | 'triangles' | 'checkerboard' | 'none';
+export type BackgroundPattern = 'grid' | 'dots' | 'waves' | 'triangles' | 'checkerboard' | 'none';
 
 interface AppearanceState {
   theme: Theme;
@@ -35,14 +34,28 @@ export const AppearanceContext = createContext<AppearanceContextType>({
   backgroundClass: '',
 });
 
-const patterns: Record<BackgroundPattern, string> = {
-    grid: 'bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]',
-    dots: 'bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:1rem_1rem]',
-    plus: 'bg-[linear-gradient(#d1d5db_1px,transparent_1px),linear-gradient(to_right,#d1d5db_1px,transparent_1px)] dark:bg-[linear-gradient(#374151_1px,transparent_1px),linear-gradient(to_right,#374151_1px,transparent_1px)] bg-[size:1rem_1rem]',
-    waves: `bg-size-[80px_40px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' width='80' height='40'%3e%3cpath d='M0 20 C20 0, 60 0, 80 20' stroke='%23d1d5db' fill='none' stroke-width='2'/%3e%3c/svg%3e")] dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' width='80' height='40'%3e%3cpath d='M0 20 C20 0, 60 0, 80 20' stroke='%23374151' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`,
-    triangles: `bg-size-[50px_50px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%23e5e7eb'/%3e%3c/svg%3e")] dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%231f2937'/%3e%3c/svg%3e")]`,
-    checkerboard: 'bg-size-[20px_20px] bg-gray-200 dark:bg-gray-800 bg-[image:linear-gradient(45deg,#fff_25%,transparent_25%),linear-gradient(-45deg,#fff_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#fff_75%),linear-gradient(-45deg,transparent_75%,#fff_75%)] dark:bg-[image:linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]',
-    none: ''
+const patterns: Record<BackgroundPattern, { light: string; dark: string; }> = {
+    grid: {
+        light: 'bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:4rem_4rem]',
+        dark: 'dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)]'
+    },
+    dots: {
+        light: 'bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:1rem_1rem]',
+        dark: 'dark:bg-[radial-gradient(#374151_1px,transparent_1px)]'
+    },
+    waves: {
+        light: `bg-size-[80px_40px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' width='80' height='40'%3e%3cpath d='M0 20 C20 0, 60 0, 80 20' stroke='%23d1d5db' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`,
+        dark: `dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' width='80' height='40'%3e%3cpath d='M0 20 C20 0, 60 0, 80 20' stroke='%23374151' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`
+    },
+    triangles: {
+        light: `bg-size-[50px_50px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%23e5e7eb'/%3e%3c/svg%3e")]`,
+        dark: `dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%231f2937'/%3e%3c/svg%3e")]`
+    },
+    checkerboard: {
+        light: 'bg-size-[20px_20px] bg-[image:linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)]',
+        dark: 'dark:bg-[image:linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]'
+    },
+    none: { light: '', dark: '' }
 };
 
 const accentColorHex: Record<AccentColor, { light: string; dark: string }> = {
@@ -108,7 +121,10 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const setBackgroundPattern = (newPattern: BackgroundPattern) => setBackgroundPatternState(newPattern);
   const toggleTheme = () => setThemeState(prev => (prev === 'light' ? 'dark' : 'light'));
   
-  const backgroundClass = patterns[backgroundPattern];
+  const backgroundClass = useMemo(() => {
+    const pattern = patterns[backgroundPattern];
+    return `${pattern.light} ${pattern.dark}`;
+  }, [backgroundPattern]);
 
   const value = useMemo(() => ({
     theme,
