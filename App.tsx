@@ -370,9 +370,22 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 const Background = () => {
-    const { backgroundClass } = useAppearance();
+    const { backgroundClass, customBackgroundImage } = useAppearance();
     return (
-        <div className={`fixed inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-950 ${backgroundClass}`}></div>
+        <div className="fixed inset-0 -z-10">
+            {customBackgroundImage ? (
+                <>
+                    <div 
+                        className="absolute inset-0 h-full w-full bg-cover bg-center" 
+                        style={{ backgroundImage: `url(${customBackgroundImage})` }}
+                    />
+                    <div className="absolute inset-0 h-full w-full bg-gray-100/80 dark:bg-gray-950/80 backdrop-blur-sm" />
+                </>
+            ) : (
+                <div className="h-full w-full bg-gray-100 dark:bg-gray-950" />
+            )}
+            <div className={`absolute inset-0 h-full w-full ${backgroundClass}`} />
+        </div>
     );
 };
 

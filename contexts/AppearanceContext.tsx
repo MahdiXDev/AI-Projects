@@ -3,18 +3,20 @@ import { db } from '../utils/db';
 
 export type Theme = 'light' | 'dark';
 export type AccentColor = 'sky' | 'emerald' | 'rose' | 'violet' | 'amber' | 'teal' | 'orange' | 'indigo';
-export type BackgroundPattern = 'grid' | 'dots' | 'waves' | 'triangles' | 'checkerboard' | 'none';
+export type BackgroundPattern = 'grid' | 'dots' | 'waves' | 'checkerboard' | 'none';
 
 interface AppearanceState {
   theme: Theme;
   accentColor: AccentColor;
   backgroundPattern: BackgroundPattern;
+  customBackgroundImage: string | null;
 }
 
 interface AppearanceContextType extends AppearanceState {
   setTheme: (theme: Theme) => void;
   setAccentColor: (color: AccentColor) => void;
   setBackgroundPattern: (pattern: BackgroundPattern) => void;
+  setCustomBackgroundImage: (imageUrl: string | null) => void;
   toggleTheme: () => void;
   backgroundClass: string;
 }
@@ -23,6 +25,7 @@ const defaultSettings: AppearanceState = {
   theme: 'dark',
   accentColor: 'sky',
   backgroundPattern: 'grid',
+  customBackgroundImage: null,
 };
 
 export const AppearanceContext = createContext<AppearanceContextType>({
@@ -30,6 +33,7 @@ export const AppearanceContext = createContext<AppearanceContextType>({
   setTheme: () => {},
   setAccentColor: () => {},
   setBackgroundPattern: () => {},
+  setCustomBackgroundImage: () => {},
   toggleTheme: () => {},
   backgroundClass: '',
 });
@@ -46,10 +50,6 @@ const patterns: Record<BackgroundPattern, { light: string; dark: string; }> = {
     waves: {
         light: `bg-[size:80px_40px] bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MCA0MCcgd2lkdGg9JzgwJyBoZWlnaHQ9JzQwJz48cGF0aCBkPSdNMCAyMCBDMjAgMCwgNjAgMCwgODAgMjAnIHN0cm9rZT0nI2QxZDVkYicgZmlsbD0nbm9uZScgc3Ryb2tlLXdpZHRoPScyJy8+PC9zdmc+)]`,
         dark: `dark:bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4MCA0MCcgd2lkdGg9JzgwJyBoZWlnaHQ9JzQwJz48cGF0aCBkPSdNMCAyMCBDMjAgMCwgNjAgMCwgODAgMjAnIHN0cm9rZT0nIzM3NDE1MScgZmlsbD0nbm9uZScgc3Ryb2tlLXdpZHRoPScyJy8+PC9zdmc+)]`
-    },
-    triangles: {
-        light: `bg-[size:50px_50px] bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MCcgaGVpZ2h0PSc1MCcgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxwYXRoIGQ9J00wIDEwMCBMNTAgMCBMMTAwIDEwMCBaJyBmaWxsPScjZTVlN2ViJy8+PC9zdmc+)]`,
-        dark: `dark:bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MCcgaGVpZ2h0PSc1MCcgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxwYXRoIGQ9J00wIDEwMCBMNTAgMCBMMTAwIDEwMCBaJyBmaWxsPScjMWYyOTM3Jy8+PC9zdmc+)]`
     },
     checkerboard: {
         light: 'bg-[size:20px_20px] bg-[image:linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)]',
@@ -74,6 +74,7 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [theme, setThemeState] = useState<Theme>(defaultSettings.theme);
   const [accentColor, setAccentColorState] = useState<AccentColor>(defaultSettings.accentColor);
   const [backgroundPattern, setBackgroundPatternState] = useState<BackgroundPattern>(defaultSettings.backgroundPattern);
+  const [customBackgroundImage, setCustomBackgroundImageState] = useState<string | null>(defaultSettings.customBackgroundImage);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -81,10 +82,12 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const storedTheme = await db.getSetting<Theme>('theme');
       const storedColor = await db.getSetting<AccentColor>('accentColor');
       const storedPattern = await db.getSetting<BackgroundPattern>('backgroundPattern');
+      const storedCustomBg = await db.getSetting<string | null>('customBackgroundImage');
       
       setThemeState(storedTheme || defaultSettings.theme);
       setAccentColorState(storedColor || defaultSettings.accentColor);
       setBackgroundPatternState(storedPattern || defaultSettings.backgroundPattern);
+      setCustomBackgroundImageState(storedCustomBg || null);
       setIsLoaded(true);
     };
     loadSettings();
@@ -106,6 +109,11 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, [backgroundPattern, isLoaded]);
 
   useEffect(() => {
+    if (!isLoaded) return;
+    db.setSetting('customBackgroundImage', customBackgroundImage);
+  }, [customBackgroundImage, isLoaded]);
+
+  useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
@@ -119,6 +127,7 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const setTheme = (newTheme: Theme) => setThemeState(newTheme);
   const setAccentColor = (newColor: AccentColor) => setAccentColorState(newColor);
   const setBackgroundPattern = (newPattern: BackgroundPattern) => setBackgroundPatternState(newPattern);
+  const setCustomBackgroundImage = (imageUrl: string | null) => setCustomBackgroundImageState(imageUrl);
   const toggleTheme = () => setThemeState(prev => (prev === 'light' ? 'dark' : 'light'));
   
   const backgroundClass = useMemo(() => {
@@ -130,12 +139,14 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     theme,
     accentColor,
     backgroundPattern,
+    customBackgroundImage,
     setTheme,
     setAccentColor,
     setBackgroundPattern,
+    setCustomBackgroundImage,
     toggleTheme,
     backgroundClass
-  }), [theme, accentColor, backgroundPattern, backgroundClass]);
+  }), [theme, accentColor, backgroundPattern, customBackgroundImage, backgroundClass]);
 
   return (
     <AppearanceContext.Provider value={value}>

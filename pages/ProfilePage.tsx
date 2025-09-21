@@ -2,7 +2,7 @@ import React, { useContext, useState, useRef, useMemo } from 'react';
 import { AuthContext, CourseContext } from '../App';
 import { Link } from 'react-router-dom';
 import { ConfirmModal } from '../components/Modal';
-import { ArrowRightIcon, PencilIcon, UploadIcon, DownloadIcon } from '../components/icons';
+import { ArrowRightIcon, PencilIcon, UploadIcon, DownloadIcon, TrashIcon } from '../components/icons';
 import { db } from '../utils/db'; // Import IndexedDB utility
 import { useAppearance, AccentColor, BackgroundPattern, Theme } from '../contexts/AppearanceContext';
 
@@ -27,10 +27,12 @@ const ProfilePage: React.FC = () => {
     const { 
         theme, setTheme, 
         accentColor, setAccentColor,
-        backgroundPattern, setBackgroundPattern
+        backgroundPattern, setBackgroundPattern,
+        customBackgroundImage, setCustomBackgroundImage
     } = useAppearance();
     
     const profilePicInputRef = useRef<HTMLInputElement>(null);
+    const bgPicInputRef = useRef<HTMLInputElement>(null);
     const importFileInputRef = useRef<HTMLInputElement>(null);
     
     const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
@@ -61,7 +63,6 @@ const ProfilePage: React.FC = () => {
         { name: 'grid', label: 'شبکه‌ای', previewClass: 'bg-[size:2rem_2rem] bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)]' },
         { name: 'dots', label: 'نقطه‌چین', previewClass: '[background-size:0.75rem_0.75rem] bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)]' },
         { name: 'waves', label: 'موج', previewClass: `bg-[size:40px_20px] bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0MCAyMCcgd2lkdGg9JzQwJyBoZWlnaHQ9JzIwJz48cGF0aCBkPSdNMCAxMCBDMTAgMCwgMzAgMCwgNDAgMTAnIHN0cm9rZT0nI2QxZDVkYicgZmlsbD0nbm9uZScgc3Ryb2tlLXdpZHRoPScyJy8+PC9zdmc+)] dark:bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0MCAyMCcgd2lkdGg9JzQwJyBoZWlnaHQ9JzIwJz48cGF0aCBkPSdNMCAxMCBDMTAgMCwgMzAgMCwgNDAgMTAnIHN0cm9rZT0nIzM3NDE1MScgZmlsbD0nbm9uZScgc3Ryb2tlLXdpZHRoPScyJy8+PC9zdmc+)]`},
-        { name: 'triangles', label: 'مثلث', previewClass: `bg-[size:30px_30px] bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMCcgaGVpZ2h0PSczMCcgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxwYXRoIGQ9J00wIDEwMCBMNTAgMCBMMTAwIDEwMCBaJyBmaWxsPScjZTVlN2ViJy8+PC9zdmc+)] dark:bg-[image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMCcgaGVpZ2h0PSczMCcgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxwYXRoIGQ9J00wIDEwMCBMNTAgMCBMMTAwIDEwMCBaJyBmaWxsPScjMWYyOTM3Jy8+PC9zdmc+)]` },
         { name: 'checkerboard', label: 'شطرنجی', previewClass: 'bg-[size:20px_20px] bg-[image:linear-gradient(45deg,#d1d5db_25%,transparent_25%),linear-gradient(-45deg,#d1d5db_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#d1d5db_75%),linear-gradient(-45deg,transparent_75%,#d1d5db_75%)] dark:bg-[image:linear-gradient(45deg,#374151_25%,transparent_25%),linear-gradient(-45deg,#374151_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#374151_75%),linear-gradient(-45deg,transparent_75%,#374151_75%)]' },
         { name: 'none', label: 'ساده', previewClass: '' },
     ];
@@ -82,6 +83,18 @@ const ProfilePage: React.FC = () => {
             reader.onloadend = () => {
                 updateUser({ profilePicture: reader.result as string });
                 showMessage('success', 'تصویر پروفایل با موفقیت به‌روزرسانی شد.');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const handleBackgroundPictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCustomBackgroundImage(reader.result as string);
+                showMessage('success', 'تصویر پس‌زمینه با موفقیت به‌روزرسانی شد.');
             };
             reader.readAsDataURL(file);
         }
@@ -267,6 +280,29 @@ const ProfilePage: React.FC = () => {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                         {/* Custom Background Image */}
+                         <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تصویر پس‌زمینه سفارشی</label>
+                            <div className="mt-2 flex items-center gap-4">
+                                <button onClick={() => bgPicInputRef.current?.click()} className={`flex items-center justify-center gap-2 rounded-lg bg-${accentColor}-500/20 px-4 py-2 text-sm font-semibold text-${accentColor}-600 dark:text-${accentColor}-300 transition-colors duration-300 hover:bg-${accentColor}-500/30`}>
+                                    <UploadIcon className="w-5 h-5"/>
+                                    <span>بارگذاری تصویر</span>
+                                </button>
+                                {customBackgroundImage && (
+                                <button onClick={() => setCustomBackgroundImage(null)} className="flex items-center justify-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition-colors duration-300 hover:bg-red-500/30">
+                                    <TrashIcon className="w-5 h-5"/>
+                                    <span>حذف تصویر</span>
+                                </button>
+                                )}
+                                <input type="file" ref={bgPicInputRef} onChange={handleBackgroundPictureChange} className="hidden" accept="image/*" />
+                            </div>
+                            {customBackgroundImage && (
+                                <div className="mt-4">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">پیش‌نمایش:</p>
+                                    <div className="mt-2 h-24 rounded-lg bg-cover bg-center border border-black/10 dark:border-white/10" style={{ backgroundImage: `url(${customBackgroundImage})` }}></div>
+                                </div>
+                            )}
                         </div>
                     </div>
                  </div>
