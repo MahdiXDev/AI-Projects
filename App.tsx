@@ -2,11 +2,13 @@
 import React, { createContext, useReducer, useEffect, useState, useMemo, useContext } from 'react';
 import { Routes, Route, Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import type { User, Course, Topic } from './types';
+import type { User, Course, Topic, Subject } from './types';
 import { db } from './utils/db'; // Import IndexedDB utility
+import { AppearanceProvider, useAppearance } from './contexts/AppearanceContext';
 import HomePage from './pages/HomePage';
 import CoursePage from './pages/CoursePage';
-import TopicDetailPage from './pages/TopicDetailPage';
+import TopicPage from './pages/TopicPage';
+import SubjectDetailPage from './pages/SubjectDetailPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
@@ -23,10 +25,15 @@ type CourseAction =
   | { type: 'ADD_TOPIC'; payload: { courseId: string; title: string } }
   | { type: 'EDIT_TOPIC'; payload: { courseId: string; topicId: string; title: string } }
   | { type: 'DELETE_TOPIC'; payload: { courseId: string; topicId: string } }
-  | { type: 'UPDATE_TOPIC_DETAILS'; payload: { courseId: string; topicId: string; notes: string; imageUrls: string[] } }
   | { type: 'DELETE_COURSES_BY_USER'; payload: { userEmail: string } }
   | { type: 'REORDER_COURSES'; payload: { userEmail: string; courses: Course[] } }
-  | { type: 'REORDER_TOPICS'; payload: { courseId: string; topics: Topic[] } };
+  | { type: 'REORDER_TOPICS'; payload: { courseId: string; topics: Topic[] } }
+  | { type: 'ADD_SUBJECT'; payload: { courseId: string; topicId: string; title: string } }
+  | { type: 'EDIT_SUBJECT'; payload: { courseId: string; topicId: string; subjectId: string; title: string } }
+  | { type: 'DELETE_SUBJECT'; payload: { courseId: string; topicId: string; subjectId: string } }
+  | { type: 'UPDATE_SUBJECT_DETAILS'; payload: { courseId: string; topicId: string; subjectId: string; notes: string; imageUrls: string[] } }
+  | { type: 'REORDER_SUBJECTS'; payload: { courseId: string; topicId: string; subjects: Subject[] } };
+
 
 const courseReducer = (state: Course[], action: CourseAction): Course[] => {
   switch (action.type) {
@@ -59,8 +66,7 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
             const newTopic: Topic = {
                 id: uuidv4(),
                 title: action.payload.title,
-                notes: '',
-                imageUrls: [],
+                subjects: [],
                 createdAt: Date.now(),
                 sortOrder: (course.topics.reduce((max, t) => Math.max(t.sortOrder || 0, max), 0)) + 1,
             };
@@ -88,19 +94,6 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
           ? { ...course, topics: course.topics.filter(topic => topic.id !== action.payload.topicId) }
           : course
       );
-    case 'UPDATE_TOPIC_DETAILS':
-      return state.map(course =>
-        course.id === action.payload.courseId
-          ? {
-              ...course,
-              topics: course.topics.map(topic =>
-                topic.id === action.payload.topicId
-                  ? { ...topic, notes: action.payload.notes, imageUrls: action.payload.imageUrls }
-                  : topic
-              ),
-            }
-          : course
-      );
     case 'DELETE_COURSES_BY_USER':
         return state.filter(course => course.userEmail !== action.payload.userEmail);
     case 'REORDER_COURSES': {
@@ -122,6 +115,91 @@ const courseReducer = (state: Course[], action: CourseAction): Course[] => {
                 return { ...course, topics: reorderedTopics };
             }
             return course;
+        });
+    }
+    case 'ADD_SUBJECT':
+        return state.map(course => {
+            if (course.id !== action.payload.courseId) return course;
+            return {
+                ...course,
+                topics: course.topics.map(topic => {
+                    if (topic.id !== action.payload.topicId) return topic;
+                    const newSubject: Subject = {
+                        id: uuidv4(),
+                        title: action.payload.title,
+                        notes: '',
+                        imageUrls: [],
+                        createdAt: Date.now(),
+                        sortOrder: (topic.subjects.reduce((max, s) => Math.max(s.sortOrder || 0, max), 0)) + 1,
+                    };
+                    return { ...topic, subjects: [...topic.subjects, newSubject] };
+                }),
+            };
+        });
+    case 'EDIT_SUBJECT':
+        return state.map(course => {
+            if (course.id !== action.payload.courseId) return course;
+            return {
+                ...course,
+                topics: course.topics.map(topic => {
+                    if (topic.id !== action.payload.topicId) return topic;
+                    return {
+                        ...topic,
+                        subjects: topic.subjects.map(subject =>
+                            subject.id === action.payload.subjectId
+                                ? { ...subject, title: action.payload.title }
+                                : subject
+                        ),
+                    };
+                }),
+            };
+        });
+    case 'DELETE_SUBJECT':
+        return state.map(course => {
+            if (course.id !== action.payload.courseId) return course;
+            return {
+                ...course,
+                topics: course.topics.map(topic => {
+                    if (topic.id !== action.payload.topicId) return topic;
+                    return {
+                        ...topic,
+                        subjects: topic.subjects.filter(subject => subject.id !== action.payload.subjectId),
+                    };
+                }),
+            };
+        });
+    case 'UPDATE_SUBJECT_DETAILS':
+        return state.map(course => {
+            if (course.id !== action.payload.courseId) return course;
+            return {
+                ...course,
+                topics: course.topics.map(topic => {
+                    if (topic.id !== action.payload.topicId) return topic;
+                    return {
+                        ...topic,
+                        subjects: topic.subjects.map(subject =>
+                            subject.id === action.payload.subjectId
+                                ? { ...subject, notes: action.payload.notes, imageUrls: action.payload.imageUrls }
+                                : subject
+                        ),
+                    };
+                }),
+            };
+        });
+    case 'REORDER_SUBJECTS': {
+        return state.map(course => {
+            if (course.id !== action.payload.courseId) return course;
+            return {
+                ...course,
+                topics: course.topics.map(topic => {
+                    if (topic.id !== action.payload.topicId) return topic;
+                    const reorderedSubjects = action.payload.subjects.map((subject, index) => ({
+                        ...subject,
+                        sortOrder: index + 1,
+                    }));
+                    return { ...topic, subjects: reorderedSubjects };
+                }),
+            };
         });
     }
     default:
@@ -292,42 +370,24 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
 };
 
-// --- THEME ---
-const useTheme = () => {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-
-    useEffect(() => {
-        db.getSetting<'light' | 'dark'>('theme').then(storedTheme => {
-            if (storedTheme) {
-                setTheme(storedTheme);
-            }
-        });
-    }, []);
-
-    useEffect(() => {
-        const root = window.document.documentElement;
-        root.classList.remove(theme === 'light' ? 'dark' : 'light');
-        root.classList.add(theme);
-        db.setSetting('theme', theme);
-    }, [theme]);
-
-    const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-
-    return { theme, toggleTheme };
+const Background = () => {
+    const { backgroundClass } = useAppearance();
+    return (
+        <div className={`absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-950 ${backgroundClass}`}></div>
+    );
 };
-
 
 // --- LAYOUT ---
 const Layout: React.FC = () => {
     const { user, logout } = useContext(AuthContext);
-    const { theme, toggleTheme } = useTheme();
+    const { theme, toggleTheme } = useAppearance();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     if (!user) return <Navigate to="/login" />;
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
-             <div className="absolute inset-0 -z-10 h-full w-full bg-gray-100 dark:bg-gray-900 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+        <div className="min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300">
+             <Background />
             <header className="sticky top-0 z-40 bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg border-b border-black/10 dark:border-white/10">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
@@ -372,7 +432,7 @@ const PrivateRoute: React.FC = () => {
 
     if (!isInitialized) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+            <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-white">
                 <div className="text-xl font-semibold">در حال بارگذاری اطلاعات...</div>
             </div>
         );
@@ -390,7 +450,8 @@ const AppRoutes: React.FC = () => (
                 <Route path="/" element={<HomePage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/course/:courseId" element={<CoursePage />} />
-                <Route path="/course/:courseId/topic/:topicId" element={<TopicDetailPage />} />
+                <Route path="/course/:courseId/topic/:topicId" element={<TopicPage />} />
+                <Route path="/course/:courseId/topic/:topicId/subject/:subjectId" element={<SubjectDetailPage />} />
             </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
@@ -401,9 +462,11 @@ const AppRoutes: React.FC = () => (
 function App() {
   return (
     <AuthProvider>
+      <AppearanceProvider>
         <CourseProvider>
             <AppRoutes />
         </CourseProvider>
+      </AppearanceProvider>
     </AuthProvider>
   );
 }

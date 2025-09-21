@@ -1,25 +1,35 @@
+
 import React, { useContext, useState, useRef, useMemo } from 'react';
 import { AuthContext, CourseContext } from '../App';
 import { Link } from 'react-router-dom';
 import { ConfirmModal } from '../components/Modal';
 import { ArrowRightIcon, PencilIcon, UploadIcon, DownloadIcon } from '../components/icons';
 import { db } from '../utils/db'; // Import IndexedDB utility
+import { useAppearance, AccentColor, BackgroundPattern, Theme } from '../contexts/AppearanceContext';
 
 interface AppData {
     users: any[];
     global_courses: any[];
 }
 
-const StatCard: React.FC<{ title: string; value: string | number }> = ({ title, value }) => (
-  <div className="rounded-lg bg-gray-500/10 p-4 text-center">
-    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</dt>
-    <dd className="mt-1 text-2xl font-semibold tracking-tight text-sky-600 dark:text-sky-400">{value}</dd>
-  </div>
-);
+const StatCard: React.FC<{ title: string; value: string | number }> = ({ title, value }) => {
+    const { accentColor } = useAppearance();
+    return (
+      <div className="rounded-lg bg-gray-500/10 p-4 text-center">
+        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</dt>
+        <dd className={`mt-1 text-2xl font-semibold tracking-tight text-${accentColor}-600 dark:text-${accentColor}-400`}>{value}</dd>
+      </div>
+    );
+};
 
 const ProfilePage: React.FC = () => {
     const { user, updateUser, changePassword, deleteCurrentUser } = useContext(AuthContext);
     const { courses, dispatch: dispatchCourseAction } = useContext(CourseContext);
+    const { 
+        theme, setTheme, 
+        accentColor, setAccentColor,
+        backgroundPattern, setBackgroundPattern
+    } = useAppearance();
     
     const profilePicInputRef = useRef<HTMLInputElement>(null);
     const importFileInputRef = useRef<HTMLInputElement>(null);
@@ -36,6 +46,27 @@ const ProfilePage: React.FC = () => {
 
     const totalTopics = useMemo(() => courses.reduce((acc, course) => acc + course.topics.length, 0), [courses]);
     const registrationDate = useMemo(() => user ? new Date(user.createdAt).toLocaleDateString('fa-IR') : '', [user]);
+    
+    const accentColorOptions: { name: AccentColor, bgClass: string }[] = [
+        { name: 'sky', bgClass: 'bg-sky-500' },
+        { name: 'emerald', bgClass: 'bg-emerald-500' },
+        { name: 'rose', bgClass: 'bg-rose-500' },
+        { name: 'violet', bgClass: 'bg-violet-500' },
+        { name: 'amber', bgClass: 'bg-amber-500' },
+        { name: 'teal', bgClass: 'bg-teal-500' },
+        { name: 'orange', bgClass: 'bg-orange-500' },
+        { name: 'indigo', bgClass: 'bg-indigo-500' },
+    ];
+
+    const backgroundPatternOptions: { name: BackgroundPattern, label: string, previewClass: string }[] = [
+        { name: 'grid', label: 'شبکه‌ای', previewClass: 'bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:2rem_2rem]' },
+        { name: 'dots', label: 'نقطه‌چین', previewClass: 'bg-[radial-gradient(#d1d5db_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:0.75rem_0.75rem]' },
+        { name: 'plus', label: 'بعلاوه', previewClass: 'bg-[linear-gradient(#d1d5db_1px,transparent_1px),linear-gradient(to_right,#d1d5db_1px,transparent_1px)] dark:bg-[linear-gradient(#374151_1px,transparent_1px),linear-gradient(to_right,#374151_1px,transparent_1px)] bg-[size:0.75rem_0.75rem]' },
+        { name: 'waves', label: 'موج', previewClass: `bg-size-[40px_20px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20' width='40' height='20'%3e%3cpath d='M0 10 C10 0, 30 0, 40 10' stroke='%23d1d5db' fill='none' stroke-width='2'/%3e%3c/svg%3e")] dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20' width='40' height='20'%3e%3cpath d='M0 10 C10 0, 30 0, 40 10' stroke='%23374151' fill='none' stroke-width='2'/%3e%3c/svg%3e")]`},
+        { name: 'triangles', label: 'مثلث', previewClass: `bg-size-[30px_30px] bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%23e5e7eb'/%3e%3c/svg%3e")] dark:bg-[image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100'%3e%3cpath d='M0 100 L50 0 L100 100 Z' fill='%231f2937'/%3e%3c/svg%3e")]` },
+        { name: 'checkerboard', label: 'شطرنجی', previewClass: 'bg-size-[20px_20px] bg-gray-200 dark:bg-gray-800 bg-[image:linear-gradient(45deg,#fff_25%,transparent_25%),linear-gradient(-45deg,#fff_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#fff_75%),linear-gradient(-45deg,transparent_75%,#fff_75%)] dark:bg-[image:linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]' },
+        { name: 'none', label: 'ساده', previewClass: '' },
+    ];
 
     if (!user) {
         return <div className="text-center">در حال بارگذاری پروفایل...</div>;
@@ -159,18 +190,18 @@ const ProfilePage: React.FC = () => {
         }
     };
 
-    const inputClasses = "w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition";
-    const buttonClasses = "w-full rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400";
+    const inputClasses = `w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-${accentColor}-500 focus:ring-${accentColor}-500 transition`;
+    const buttonClasses = `w-full rounded-lg bg-${accentColor}-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400`;
 
 
     return (
         <div className="max-w-5xl mx-auto">
             <header className="mb-8">
-                 <Link to="/" className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
+                 <Link to="/" className={`flex items-center gap-2 text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-500 dark:hover:text-${accentColor}-300 mb-4 transition-colors`}>
                     <ArrowRightIcon className="w-5 h-5 transform scale-x-[-1]" />
                     <span>بازگشت به دوره‌ها</span>
                 </Link>
-                <h1 className="text-4xl font-bold tracking-tight">پنل کاربری</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">پنل کاربری</h1>
                 <p className="mt-1 text-gray-500 dark:text-gray-400">اطلاعات حساب خود را مدیریت کنید.</p>
             </header>
 
@@ -190,13 +221,58 @@ const ProfilePage: React.FC = () => {
                             <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
                         </div>
                     </div>
-                    <dl className="mt-6 grid grid-cols-2 gap-4">
+                    <dl className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <StatCard title="تعداد دوره‌ها" value={courses.length} />
                         <StatCard title="تعداد سرفصل‌ها" value={totalTopics} />
                         <StatCard title="تاریخ عضویت" value={registrationDate} />
                     </dl>
                 </div>
                 
+                 {/* App Settings */}
+                 <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 shadow-lg backdrop-blur-lg">
+                    <h3 className="text-xl font-semibold mb-6">تنظیمات برنامه</h3>
+                    <div className="space-y-6">
+                        {/* Theme */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تم</label>
+                            <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-gray-200 dark:bg-gray-700/50">
+                                <button onClick={() => setTheme('light')} className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${theme === 'light' ? `bg-white text-gray-800 shadow` : 'text-gray-600 dark:text-gray-300'}`}>روشن</button>
+                                <button onClick={() => setTheme('dark')} className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${theme === 'dark' ? `bg-gray-900 text-white shadow` : 'text-gray-600 dark:text-gray-300'}`}>تاریک</button>
+                            </div>
+                        </div>
+                        {/* Accent Color */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">رنگ اصلی</label>
+                            <div className="flex flex-wrap items-center gap-3">
+                                {accentColorOptions.map(color => (
+                                    <button
+                                        key={color.name}
+                                        onClick={() => setAccentColor(color.name)}
+                                        aria-label={`Select ${color.name} theme`}
+                                        className={`w-8 h-8 rounded-full ${color.bgClass} transition-transform hover:scale-110 ${accentColor === color.name ? `ring-2 ring-offset-2 ring-offset-gray-100 dark:ring-offset-gray-950 ring-${color.name}-500` : ''}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        {/* Background Pattern */}
+                         <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">طرح پس‌زمینه</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {backgroundPatternOptions.map(pattern => (
+                                    <button 
+                                      key={pattern.name} 
+                                      onClick={() => setBackgroundPattern(pattern.name)}
+                                      className={`relative p-2 h-20 w-full rounded-lg text-center transition-all duration-200 ${backgroundPattern === pattern.name ? `ring-2 ring-offset-1 ring-offset-gray-100 dark:ring-offset-gray-950 ring-${accentColor}-500` : 'ring-1 ring-gray-300 dark:ring-gray-600'}`}
+                                    >
+                                      <div className={`absolute inset-0 rounded-md bg-gray-200 dark:bg-gray-900 ${pattern.previewClass}`}></div>
+                                      <span className="relative z-10 text-sm font-semibold text-gray-800 dark:text-gray-200 bg-white/50 dark:bg-gray-950/50 px-2 py-1 rounded-md">{pattern.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+
                  <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 shadow-lg backdrop-blur-lg">
                     <h3 className="text-xl font-semibold mb-6">ویرایش پروفایل</h3>
                     <div className="space-y-8">
@@ -236,7 +312,7 @@ const ProfilePage: React.FC = () => {
                             <DownloadIcon className="w-5 h-5"/>
                             <span>خروجی گرفتن از داده‌ها</span>
                         </button>
-                        <button onClick={() => importFileInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400">
+                        <button onClick={() => importFileInputRef.current?.click()} className={`flex-1 flex items-center justify-center gap-2 rounded-lg bg-${accentColor}-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400`}>
                            <UploadIcon className="w-5 h-5"/>
                            <span>وارد کردن داده‌ها</span>
                         </button>

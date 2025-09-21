@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from './icons';
+import { useAppearance } from '../contexts/AppearanceContext';
 
 interface ModalProps {
   isOpen: boolean;
@@ -73,6 +74,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = "انصراف",
   isDestructive = true,
 }) => {
+  const { accentColor } = useAppearance();
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div>
@@ -91,7 +94,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all duration-300 ${
               isDestructive 
               ? 'bg-red-600 shadow-lg shadow-red-600/30 hover:bg-red-500' 
-              : 'bg-sky-600 shadow-lg shadow-sky-600/30 hover:bg-sky-500'
+              : `bg-${accentColor}-600 shadow-lg shadow-${accentColor}-600/30 hover:bg-${accentColor}-500`
             }`}
           >
             {confirmText}

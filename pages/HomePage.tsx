@@ -3,6 +3,7 @@ import React, { useContext, useState, useRef, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { CourseContext, AuthContext } from '../App';
+import { useAppearance } from '../contexts/AppearanceContext';
 import type { Course } from '../types';
 import Modal, { ConfirmModal } from '../components/Modal';
 import { DotsVerticalIcon, PencilIcon, TrashIcon, PlusIcon, SearchIcon, ChevronDownIcon, ReorderIcon, SaveIcon, XIcon } from '../components/icons';
@@ -11,6 +12,7 @@ import { DotsVerticalIcon, PencilIcon, TrashIcon, PlusIcon, SearchIcon, ChevronD
 const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () => void, onReorder: () => void }> = ({ course, onEdit, onDelete, onReorder }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const { accentColor } = useAppearance();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -25,7 +27,7 @@ const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () =>
     const topicCount = course.topics.length;
 
     return (
-        <div className={`group relative rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-sky-500/30 dark:hover:border-sky-400/30 shadow-md hover:shadow-xl ${menuOpen ? 'z-10' : ''}`}>
+        <div className={`group relative rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-gray-800/50 p-6 transition-all duration-300 hover:bg-white/70 dark:hover:bg-gray-700/60 backdrop-blur-lg hover:border-${accentColor}-500/30 dark:hover:border-${accentColor}-400/30 shadow-md hover:shadow-xl ${menuOpen ? 'z-10' : ''}`}>
             <div className="absolute top-4 right-4" ref={menuRef}>
                 <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-black/10 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors opacity-50 group-hover:opacity-100">
                     <DotsVerticalIcon className="w-5 h-5" />
@@ -56,7 +58,7 @@ const CourseCard: React.FC<{ course: Course, onEdit: () => void, onDelete: () =>
                 </AnimatePresence>
             </div>
             <Link to={`course/${course.id}`} className="flex flex-col h-full">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors pr-8">{course.name}</h3>
+                <h3 className={`text-xl font-bold text-gray-900 dark:text-white group-hover:text-${accentColor}-600 dark:group-hover:text-${accentColor}-300 transition-colors pr-8`}>{course.name}</h3>
                 <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm flex-grow line-clamp-2">{course.description}</p>
                 <div className="mt-4 pt-4 border-t border-black/10 dark:border-white/10 text-xs text-gray-500">
                     <span>{topicCount} {topicCount === 1 ? 'سرفصل' : 'سرفصل‌ها'}</span>
@@ -89,6 +91,7 @@ type SortOption = 'manual' | 'newest' | 'oldest' | 'alpha-asc' | 'alpha-desc';
 const HomePage: React.FC = () => {
     const { courses, dispatch } = useContext(CourseContext);
     const { user } = useContext(AuthContext);
+    const { accentColor } = useAppearance();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [courseName, setCourseName] = useState('');
@@ -205,7 +208,7 @@ const HomePage: React.FC = () => {
         <>
             <header className="mb-8">
                 <div>
-                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
                         {isReorderMode ? 'چیدمان دوره‌ها' : 'دوره‌های من'}
                     </h1>
                     <p className="mt-1 text-gray-500 dark:text-gray-400">
@@ -222,7 +225,7 @@ const HomePage: React.FC = () => {
                             <XIcon className="w-5 h-5" />
                             <span>انصراف</span>
                         </button>
-                        <button onClick={handleSaveReorder} className="flex items-center justify-center gap-2 h-10 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400">
+                        <button onClick={handleSaveReorder} className={`flex items-center justify-center gap-2 h-10 rounded-lg bg-${accentColor}-500 px-4 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400`}>
                             <SaveIcon className="w-5 h-5" />
                             <span>ذخیره چیدمان</span>
                         </button>
@@ -239,13 +242,13 @@ const HomePage: React.FC = () => {
                             placeholder="جستجوی دوره..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-10 rounded-lg border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-700/50 pr-10 pl-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-sky-500 focus:ring-sky-500 transition"
+                            className={`w-full h-10 rounded-lg border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-700/50 pr-10 pl-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-${accentColor}-500 focus:ring-${accentColor}-500 transition`}
                         />
                     </div>
                     <div className="relative shrink-0" ref={sortMenuRef}>
                         <button
                             onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                            className="flex items-center justify-between w-full md:w-48 h-10 rounded-lg border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-700/50 px-4 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition"
+                            className={`flex items-center justify-between w-full md:w-48 h-10 rounded-lg border border-black/20 dark:border-white/20 bg-white/50 dark:bg-gray-700/50 px-4 py-2 text-gray-900 dark:text-white focus:border-${accentColor}-500 focus:ring-${accentColor}-500 transition`}
                         >
                             <span>{currentSortLabel}</span>
                             <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${isSortMenuOpen ? 'rotate-180' : ''}`} />
@@ -267,7 +270,7 @@ const HomePage: React.FC = () => {
                                                     setSortOption(option.value);
                                                     setIsSortMenuOpen(false);
                                                 }}
-                                                className={`w-full text-right block px-4 py-2 text-sm ${sortOption === option.value ? 'bg-sky-500/20 text-sky-600 dark:bg-sky-500/30 dark:text-sky-300' : 'text-gray-700 dark:text-gray-300'} hover:bg-black/5 dark:hover:bg-white/10`}
+                                                className={`w-full text-right block px-4 py-2 text-sm ${sortOption === option.value ? `bg-${accentColor}-500/20 text-${accentColor}-600 dark:bg-${accentColor}-500/30 dark:text-${accentColor}-300` : 'text-gray-700 dark:text-gray-300'} hover:bg-black/5 dark:hover:bg-white/10`}
                                             >
                                                 {option.label}
                                             </button>
@@ -279,7 +282,7 @@ const HomePage: React.FC = () => {
                     </div>
                     <button
                         onClick={openAddModal}
-                        className="flex items-center justify-center gap-2 h-10 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400 shrink-0 w-full md:w-auto"
+                        className={`flex items-center justify-center gap-2 h-10 rounded-lg bg-${accentColor}-500 px-4 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400 shrink-0 w-full md:w-auto`}
                     >
                         <PlusIcon className="w-5 h-5" />
                         <span>دوره جدید</span>
@@ -330,7 +333,7 @@ const HomePage: React.FC = () => {
                                 value={courseName}
                                 onChange={(e) => setCourseName(e.target.value)}
                                 placeholder="مثال: آموزش React پیشرفته"
-                                className="w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition"
+                                className={`w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-${accentColor}-500 focus:ring-${accentColor}-500 transition`}
                                 required
                             />
                         </div>
@@ -342,14 +345,14 @@ const HomePage: React.FC = () => {
                                 onChange={(e) => setCourseDescription(e.target.value)}
                                 placeholder="در این دوره چه چیزهایی آموزش داده می‌شود؟"
                                 rows={3}
-                                className="w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition resize-none"
+                                className={`w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-${accentColor}-500 focus:ring-${accentColor}-500 transition resize-none`}
                             />
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">
                         <button
                             type="submit"
-                            className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400"
+                            className={`rounded-lg bg-${accentColor}-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400`}
                         >
                             {editingCourse ? 'ذخیره تغییرات' : 'ایجاد دوره'}
                         </button>

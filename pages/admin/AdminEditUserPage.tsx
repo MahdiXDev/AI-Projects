@@ -1,6 +1,8 @@
+
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../App';
+import { useAppearance } from '../../contexts/AppearanceContext';
 import type { User } from '../../types';
 import { ArrowRightIcon } from '../../components/icons';
 
@@ -8,6 +10,7 @@ const AdminEditUserPage: React.FC = () => {
     const { userEmail } = useParams<{ userEmail: string }>();
     const navigate = useNavigate();
     const { getAllUsers, updateUserByEmail } = useContext(AuthContext);
+    const { accentColor } = useAppearance();
     
     const [managedUser, setManagedUser] = useState<User | null>(null);
     const [newUsername, setNewUsername] = useState('');
@@ -47,8 +50,8 @@ const AdminEditUserPage: React.FC = () => {
         }
     };
     
-    const inputClasses = "w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-sky-500 focus:ring-sky-500 transition";
-    const buttonClasses = "w-full rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400";
+    const inputClasses = `w-full rounded-lg border border-black/20 dark:border-white/20 bg-gray-100 dark:bg-gray-700/50 px-3 py-2 text-gray-900 dark:text-white focus:border-${accentColor}-500 focus:ring-${accentColor}-500 transition`;
+    const buttonClasses = `w-full rounded-lg bg-${accentColor}-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400`;
 
     if (!managedUser) {
         return <div className="text-center">کاربر یافت نشد.</div>;
@@ -57,11 +60,11 @@ const AdminEditUserPage: React.FC = () => {
     return (
         <div>
             <header className="mb-8">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
+                <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-500 dark:hover:text-${accentColor}-300 mb-4 transition-colors`}>
                     <ArrowRightIcon className="w-5 h-5 transform scale-x-[-1]" />
                     <span>بازگشت به مدیریت کاربر</span>
                 </button>
-                <h1 className="text-4xl font-bold tracking-tight">ویرایش پروفایل کاربر: {managedUser.username}</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">ویرایش پروفایل کاربر: {managedUser.username}</h1>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

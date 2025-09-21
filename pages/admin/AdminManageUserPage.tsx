@@ -1,7 +1,9 @@
+
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { User } from '../../types';
 import { AuthContext, CourseContext } from '../../App';
+import { useAppearance } from '../../contexts/AppearanceContext';
 import { ConfirmModal } from '../../components/Modal';
 import { ArrowRightIcon } from '../../components/icons';
 
@@ -10,6 +12,7 @@ const AdminManageUserPage: React.FC = () => {
     const navigate = useNavigate();
     const { getAllUsers, deleteUserByEmail } = useContext(AuthContext);
     const { dispatch: dispatchCourseAction } = useContext(CourseContext);
+    const { accentColor } = useAppearance();
     const [managedUser, setManagedUser] = useState<User | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
@@ -39,21 +42,21 @@ const AdminManageUserPage: React.FC = () => {
     }
 
     const buttonClasses = "w-full text-center rounded-lg bg-gray-300 dark:bg-gray-600 px-4 py-2 text-sm font-semibold text-gray-800 dark:text-white transition-colors duration-300 hover:bg-gray-400 dark:hover:bg-gray-500";
-    const primaryButtonClasses = "w-full text-center rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition-all duration-300 hover:bg-sky-400";
+    const primaryButtonClasses = `w-full text-center rounded-lg bg-${accentColor}-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-${accentColor}-500/30 transition-all duration-300 hover:bg-${accentColor}-400`;
     const destructiveButtonClasses = "w-full text-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition-all duration-300 hover:bg-red-500";
 
 
     return (
         <>
             <header className="mb-8">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 mb-4 transition-colors">
+                <button onClick={() => navigate(-1)} className={`flex items-center gap-2 text-${accentColor}-600 dark:text-${accentColor}-400 hover:text-${accentColor}-500 dark:hover:text-${accentColor}-300 mb-4 transition-colors`}>
                     <ArrowRightIcon className="w-5 h-5 transform scale-x-[-1]" />
                     <span>بازگشت به لیست کاربران</span>
                 </button>
                 <div className="flex items-center gap-4">
                     <img src={managedUser.profilePicture || `https://api.dicebear.com/8.x/initials/svg?seed=${managedUser.username}`} alt={managedUser.username} className="h-16 w-16 rounded-full object-cover" />
                     <div>
-                        <h1 className="text-4xl font-bold tracking-tight">{managedUser.username}</h1>
+                        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{managedUser.username}</h1>
                         <p className="mt-1 text-gray-500 dark:text-gray-400">{managedUser.email}</p>
                     </div>
                 </div>

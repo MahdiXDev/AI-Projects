@@ -1,9 +1,17 @@
 
-export interface Topic {
+export interface Subject {
   id: string;
   title: string;
   notes: string;
   imageUrls?: string[];
+  createdAt: number;
+  sortOrder: number;
+}
+
+export interface Topic {
+  id: string;
+  title: string;
+  subjects: Subject[];
   createdAt: number;
   sortOrder: number;
 }
